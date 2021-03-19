@@ -45,7 +45,6 @@ split' p xs = sep xs [] []
           | otherwise = sep os ps (o:qs)
 
 
-
 -- Enrique Santos Leal's code modified so split' has ~ type signature as split
 -- this is done to understand why Enrique's code is quicker than Antoni Diller's (qsort)
 -- with this modification, qsort'' code identical to qsort, except for split''
@@ -58,7 +57,6 @@ split' p xs = sep xs [] []
 --    only does 1 at the end  => GHC optimizes split'/split'' better
 -- NOTE: split ~ split'' when timed individually => only when used
 --       within qsort/qsort'', do these differences matter
-
 qsort'' :: Ord a => [a] -> [a]
 qsort'' []     = []
 qsort'' (x:xs) = qsort'' ls ++ [x] ++ qsort'' gs
@@ -72,7 +70,6 @@ split'' p xs = sep xs [] []
                         | otherwise = sep os ps (o:qs)
 
 
-
 -- richard bird -- chapter 7 -- thinking functionally in haskell
 -- traverses the list twice in each recursive call -- perhaps why it is slower
 -- performance ~ qsort
@@ -80,7 +77,6 @@ qsort1 :: (Ord a) => [a] -> [a]
 qsort1 []     = []
 qsort1 (x:xs) = qsort1 [y | y <- xs, y < x] ++ [x] ++
                 qsort1 [y | y <- xs, x <= y]
-
 
 
 -- richard bird -- chapter 7 -- thinking functionally in haskell
@@ -97,10 +93,6 @@ qsort2 (x:xs) = sortp xs [] []
            else sortp ys us (y:vs)
 
 
-
--- benchmarking using criterion
--- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
-
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
 generate :: List -> [Int]
@@ -111,7 +103,9 @@ generate Ascending     = take 10000 [1..] -- worst case
 generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may hang
 
 
--- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github)
+-- benchmark using Criterion package.
+-- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
+-- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
 runBenchmarks :: List -> IO ()
 runBenchmarks list = do
    M.defaultMain . return $ M.bgroup "quicksort" [
