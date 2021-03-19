@@ -67,9 +67,9 @@ qsort'' (x:xs) = qsort'' ls ++ [x] ++ qsort'' gs
 -- NOTE: GHC requires explicit `forall` at top level for compilation.
 split'' :: forall a. Ord a => a -> [a] -> ([a], [a])
 split'' p xs = sep xs [] []
- where sep :: [a] -> [a] -> [a] -> ([a], [a])
-       sep [] ps qs = (ps, qs)
-       sep (o:os) ps qs
+  where sep :: [a] -> [a] -> [a] -> ([a], [a])
+        sep [] ps qs = (ps, qs)
+        sep (o:os) ps qs
           | o < p = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
 
@@ -89,9 +89,9 @@ qsort1 (x:xs) = qsort1 [y | y <- xs, y < x] ++ [x] ++
 qsort2 :: forall a. Ord a => [a] -> [a]
 qsort2 []     = []
 qsort2 (x:xs) = sortp xs [] []
- where sortp :: [a] -> [a] -> [a] -> [a]
-       sortp [] us vs     = qsort2 us ++ [x] ++ qsort2 vs
-       sortp (y:ys) us vs = if y < x
+  where sortp :: [a] -> [a] -> [a] -> [a]
+        sortp [] us vs     = qsort2 us ++ [x] ++ qsort2 vs
+        sortp (y:ys) us vs = if y < x
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
 
