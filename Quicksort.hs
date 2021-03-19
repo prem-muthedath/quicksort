@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Quicksort (defaultMain) where
 
 import System.Random hiding (split)         -- for randomRs, mkStdGen
@@ -36,9 +38,11 @@ qsort' [] = []
 qsort' (x:xs) = qsort' ls ++ [x] ++ qsort' gs
   where (ls, gs) = split' (< x) xs
 
-split' :: (a -> Bool) -> [a] -> ([a], [a])
+-- NOTE: GHC requires explicit `forall` at top level for compilation.
+split' :: forall a. Ord a => (a -> Bool) -> [a] -> ([a], [a])
 split' p xs = sep xs [] []
-  where sep [] ps qs = (ps, qs)
+  where sep :: [a] -> [a] -> [a] -> ([a], [a])
+        sep [] ps qs = (ps, qs)
         sep (o:os) ps qs
           | p o = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
@@ -60,12 +64,14 @@ qsort'' []     = []
 qsort'' (x:xs) = qsort'' ls ++ [x] ++ qsort'' gs
   where (ls, gs) = split'' x xs
 
-split'' :: Ord a => a -> [a] -> ([a], [a])
+-- NOTE: GHC requires explicit `forall` at top level for compilation.
+split'' :: forall a. Ord a => a -> [a] -> ([a], [a])
 split'' p xs = sep xs [] []
-     where sep [] ps qs = (ps, qs)
-           sep (o:os) ps qs
-                        | o < p = sep os (o:ps) qs
-                        | otherwise = sep os ps (o:qs)
+ where sep :: [a] -> [a] -> [a] -> ([a], [a])
+       sep [] ps qs = (ps, qs)
+       sep (o:os) ps qs
+          | o < p = sep os (o:ps) qs
+          | otherwise = sep os ps (o:qs)
 
 -- richard bird -- chapter 7 -- thinking functionally in haskell.
 -- traverses the list twice in each recursive call -- perhaps why it is slower.
@@ -79,16 +85,17 @@ qsort1 (x:xs) = qsort1 [y | y <- xs, y < x] ++ [x] ++
 -- sortp (almost) like split'/split''; allocates just once (at the end).
 -- sortp also non-recursive, so GHC (likely) inlines sortp.
 -- performance ~ qsort'/qsort''.
-qsort2 :: (Ord a) => [a] -> [a]
+-- NOTE: GHC requires explicit `forall` at top level for compilation.
+qsort2 :: forall a. Ord a => [a] -> [a]
 qsort2 []     = []
 qsort2 (x:xs) = sortp xs [] []
-     where
-         sortp [] us vs     = qsort2 us ++ [x] ++ qsort2 vs
-         sortp (y:ys) us vs = if y < x
-           then sortp ys (y:us) vs
-           else sortp ys us (y:vs)
+ where sortp :: [a] -> [a] -> [a] -> [a]
+       sortp [] us vs     = qsort2 us ++ [x] ++ qsort2 vs
+       sortp (y:ys) us vs = if y < x
+          then sortp ys (y:us) vs
+          else sortp ys us (y:vs)
 
-data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
+data List = Simple | Random | Descending | Ascending | BigDescending
 
 generate :: List -> [Int]
 generate Simple        = [19, 3, 78, 5, 4, 33, 77, 21, 7, 58]
@@ -97,7 +104,7 @@ generate Descending    = take 10000 [100000,99999..1]  -- worst case
 generate Ascending     = take 10000 [1..] -- worst case
 generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may hang
 
--- benchmark using Criterion package.
+-- benchmark using criterion package.
 -- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
 runBenchmarks :: List -> IO ()
