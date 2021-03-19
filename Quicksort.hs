@@ -1,7 +1,7 @@
 module Quicksort (defaultMain) where
 
 import System.Random hiding (split)         -- for randomRs, mkStdGen
-import qualified Criterion.Main as M        -- for running benchmarks
+import qualified Criterion.Main as CM       -- for running benchmarks
 
 -- | benchmark quicksort implementations in haskell of Diller, Leal, Bird.
 --   here, we study/understand performance differences in implementations.
@@ -102,14 +102,14 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
 runBenchmarks :: List -> IO ()
 runBenchmarks list = do
-   M.defaultMain . return $ M.bgroup "quicksort" [
-       M.bench "split:"    $ M.nf _split sample,      -- nf means normal form
-       M.bench "split'':"  $ M.nf _split'' sample,
-       M.bench "qsort -- Diller (using split):"   $ M.nf qsort sample,
-       M.bench "qsort' -- Leal (using split'):"   $ M.nf qsort' sample,
-       M.bench "qsort'' -- Leal (using split''):" $ M.nf qsort'' sample,
-       M.bench "qsort1 -- Bird 1:"  $ M.nf qsort1 sample,
-       M.bench "qsort2 -- Bird 2:"  $ M.nf qsort2 sample
+   CM.defaultMain . return $ CM.bgroup "quicksort" [
+       CM.bench "split:"    $ CM.nf _split sample,      -- nf means normal form
+       CM.bench "split'':"  $ CM.nf _split'' sample,
+       CM.bench "qsort -- Diller (using split):"   $ CM.nf qsort sample,
+       CM.bench "qsort' -- Leal (using split'):"   $ CM.nf qsort' sample,
+       CM.bench "qsort'' -- Leal (using split''):" $ CM.nf qsort'' sample,
+       CM.bench "qsort1 -- Bird 1:"  $ CM.nf qsort1 sample,
+       CM.bench "qsort2 -- Bird 2:"  $ CM.nf qsort2 sample
       ] where sample = generate list
               (_split, _split'') = let pivot = head sample
                                    in (split pivot, split'' pivot)
