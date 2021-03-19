@@ -3,12 +3,12 @@ module Quicksort (defaultMain) where
 import System.Random hiding (split)         -- for randomRs, mkStdGen
 import qualified Criterion.Main as M        -- for running benchmarks
 
--- | efficient quicksort implementations in haskell
---   used to study/understand performance differences in implementations
---   all implementations (supposedly!!) > efficient than the one at haskell wiki
---   more efficient because they split the list in a single pass, rather than 2
---   (see Enrique Santos Leal's comment on Lennart's blog)
-
+-- | benchmark quicksort implementations in haskell of Diller, Leal, Bird.
+--   here, we study/understand performance differences in implementations.
+--   all implementations (supposedly!!) > efficient than one at haskell wiki.
+--   more efficient because they split list in a single pass, rather than 2.
+--   see Enrique Santos Leal's comment on Lennart's blog:
+--   https://augustss.blogspot.com/search?q=quicksort
 
 -- http://www.cantab.net/users/antoni.diller/haskell/units/unit07.html
 -- worst-case inputs:
@@ -26,9 +26,8 @@ split x (y:ys)
   | otherwise = (less, y:greater)
   where (less, greater) = split x ys
 
-
 -- https://augustss.blogspot.com/search?q=quicksort
--- Enrique Santos Leal posted this code in comments to Lennart's quicksort blog
+-- Enrique Santos Leal posted this code in comments to Lennart's quicksort blog.
 -- worst-case inputs:
 -- take 10000 [100000,99999..1], ~ 1.7 secs (best);
 -- take 100000 [1000000,999999..1] ~ 11 min
@@ -44,17 +43,16 @@ split' p xs = sep xs [] []
           | p o = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
 
-
--- Enrique Santos Leal's code modified so split' has ~ type signature as split
--- this is done to understand why Enrique's code is quicker than Antoni Diller's (qsort)
--- with this modification, qsort'' code identical to qsort, except for split''
--- yet, qsort'' has same timings as qsort', which implies --
--- qsort'/qsort'' faster than qsort because of differences between split & split'/split''
+-- Enrique Santos Leal's code modified so split' has ~ type signature as split.
+-- done to understand why Leal's code is quicker than Antoni Diller's (qsort).
+-- with this modification, qsort'' code identical to qsort, except for split''.
+-- yet, qsort'' has same timings as qsort', which implies qsort'/qsort'' faster 
+-- than qsort because of differences between split & split'/split''.
 -- so what are these differences?
 -- 1. split is recursive, while split'/split'' is not => GHC inlines split'/split''
---    but not split
+--    but not split.
 -- 2. split allocates a tuple for each recursive call, while split'/split''
---    only does 1 at the end  => GHC optimizes split'/split'' better
+--    only does 1 at the end  => GHC optimizes split'/split'' better.
 -- NOTE: split ~ split'' when timed individually => only when used
 --       within qsort/qsort'', do these differences matter
 qsort'' :: Ord a => [a] -> [a]
@@ -69,20 +67,18 @@ split'' p xs = sep xs [] []
                         | o < p = sep os (o:ps) qs
                         | otherwise = sep os ps (o:qs)
 
-
--- richard bird -- chapter 7 -- thinking functionally in haskell
--- traverses the list twice in each recursive call -- perhaps why it is slower
--- performance ~ qsort
+-- richard bird -- chapter 7 -- thinking functionally in haskell.
+-- traverses the list twice in each recursive call -- perhaps why it is slower.
+-- performance ~ qsort.
 qsort1 :: (Ord a) => [a] -> [a]
 qsort1 []     = []
 qsort1 (x:xs) = qsort1 [y | y <- xs, y < x] ++ [x] ++
                 qsort1 [y | y <- xs, x <= y]
 
-
--- richard bird -- chapter 7 -- thinking functionally in haskell
--- sortp (almost) like split'/split''; allocates just once (at the end)
--- sortp also non-recursive, so GHC (likely) inlines sortp
--- performance ~ qsort'/qsort''
+-- richard bird -- chapter 7 -- thinking functionally in haskell.
+-- sortp (almost) like split'/split''; allocates just once (at the end).
+-- sortp also non-recursive, so GHC (likely) inlines sortp.
+-- performance ~ qsort'/qsort''.
 qsort2 :: (Ord a) => [a] -> [a]
 qsort2 []     = []
 qsort2 (x:xs) = sortp xs [] []
@@ -92,7 +88,6 @@ qsort2 (x:xs) = sortp xs [] []
            then sortp ys (y:us) vs
            else sortp ys us (y:vs)
 
-
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
 generate :: List -> [Int]
@@ -101,7 +96,6 @@ generate Random        = take 1000000 . randomRs (2 :: Int, 10000000 :: Int) . m
 generate Descending    = take 10000 [100000,99999..1]  -- worst case
 generate Ascending     = take 10000 [1..] -- worst case
 generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may hang
-
 
 -- benchmark using Criterion package.
 -- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
@@ -119,7 +113,6 @@ runBenchmarks list = do
       ] where sample = generate list
               (_split, _split'') = let pivot = head sample
                                    in (split pivot, split'' pivot)
-
 defaultMain :: IO ()
 defaultMain = runBenchmarks Simple
 
