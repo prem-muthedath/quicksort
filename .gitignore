@@ -1,4 +1,5 @@
-# ignore all directories under root.
+# include everything but these:
 ################################################################################
 
-/**/
+/dist-newstyle/
+

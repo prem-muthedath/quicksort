@@ -16,9 +16,9 @@ import qualified Criterion.Main as CM       -- for running benchmarks
 -- worst-case inputs:
 -- take 10000 [100000,99999..1], ~ 16 secs (slowest);
 -- take 100000 [1000000,999999..1] hangs
-qsort :: Ord a => [a] -> [a]
-qsort [] = []
-qsort (x:xs) = qsort ls ++ [x] ++ qsort gs
+qsortDiller :: Ord a => [a] -> [a]
+qsortDiller []      = []
+qsortDiller (x:xs)  = qsortDiller ls ++ [x] ++ qsortDiller gs
   where (ls, gs) = split x xs
 
 split :: Ord a => a -> [a] -> ([a],[a])
@@ -33,10 +33,10 @@ split x (y:ys)
 -- worst-case inputs:
 -- take 10000 [100000,99999..1], ~ 1.7 secs (best);
 -- take 100000 [1000000,999999..1] ~ 11 min
-qsort'    :: Ord a => [a] -> [a]
-qsort' [] = []
-qsort' (x:xs) = qsort' ls ++ [x] ++ qsort' gs
-  where (ls, gs) = split' (< x) xs
+qsortLeal    :: Ord a => [a] -> [a]
+qsortLeal []      = []
+qsortLeal (x:xs)  = qsortLeal ls ++ [x] ++ qsortLeal gs
+  where (ls, gs)  = split' (< x) xs
 
 -- NOTE: GHC requires explicit `forall` at top level for compilation.
 split' :: forall a. Ord a => (a -> Bool) -> [a] -> ([a], [a])
@@ -59,10 +59,10 @@ split' p xs = sep xs [] []
 --    only does 1 at the end  => GHC optimizes split'/split'' better.
 -- NOTE: split ~ split'' when timed individually => only when used
 --       within qsort/qsort'', do these differences matter
-qsort'' :: Ord a => [a] -> [a]
-qsort'' []     = []
-qsort'' (x:xs) = qsort'' ls ++ [x] ++ qsort'' gs
-  where (ls, gs) = split'' x xs
+qsortLealM :: Ord a => [a] -> [a]
+qsortLealM []     = []
+qsortLealM (x:xs) = qsortLealM ls ++ [x] ++ qsortLealM gs
+  where (ls, gs)  = split'' x xs
 
 -- NOTE: GHC requires explicit `forall` at top level for compilation.
 split'' :: forall a. Ord a => a -> [a] -> ([a], [a])
@@ -76,26 +76,26 @@ split'' p xs = sep xs [] []
 -- richard bird -- chapter 7 -- thinking functionally in haskell.
 -- traverses the list twice in each recursive call -- perhaps why it is slower.
 -- performance ~ qsort.
-qsort1 :: (Ord a) => [a] -> [a]
-qsort1 []     = []
-qsort1 (x:xs) = qsort1 [y | y <- xs, y < x] ++ [x] ++
-                qsort1 [y | y <- xs, x <= y]
+qsortBird :: (Ord a) => [a] -> [a]
+qsortBird []     = []
+qsortBird (x:xs) = qsortBird [y | y <- xs, y < x] ++ [x] ++
+                   qsortBird [y | y <- xs, x <= y]
 
 -- richard bird -- chapter 7 -- thinking functionally in haskell.
 -- sortp (almost) like split'/split''; allocates just once (at the end).
 -- sortp also non-recursive, so GHC (likely) inlines sortp.
 -- performance ~ qsort'/qsort''.
 -- NOTE: GHC requires explicit `forall` at top level for compilation.
-qsort2 :: forall a. Ord a => [a] -> [a]
-qsort2 []     = []
-qsort2 (x:xs) = sortp xs [] []
+qsortBirdM :: forall a. Ord a => [a] -> [a]
+qsortBirdM []     = []
+qsortBirdM (x:xs) = sortp xs [] []
   where sortp :: [a] -> [a] -> [a] -> [a]
-        sortp [] us vs     = qsort2 us ++ [x] ++ qsort2 vs
+        sortp [] us vs     = qsortBirdM us ++ [x] ++ qsortBirdM vs
         sortp (y:ys) us vs = if y < x
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
 
-data List = Simple | Random | Descending | Ascending | BigDescending
+data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
 generate :: List -> [Int]
 generate Simple        = [19, 3, 78, 5, 4, 33, 77, 21, 7, 58]
@@ -109,14 +109,15 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
 runBenchmarks :: List -> IO ()
 runBenchmarks list = do
+   putStrLn $ "Benchmark input type: " <> show list
    CM.defaultMain . return $ CM.bgroup "quicksort" [
        CM.bench "split:"    $ CM.nf _split sample,      -- nf means normal form
        CM.bench "split'':"  $ CM.nf _split'' sample,
-       CM.bench "qsort -- Diller (using split):"   $ CM.nf qsort sample,
-       CM.bench "qsort' -- Leal (using split'):"   $ CM.nf qsort' sample,
-       CM.bench "qsort'' -- Leal (using split''):" $ CM.nf qsort'' sample,
-       CM.bench "qsort1 -- Bird 1:"  $ CM.nf qsort1 sample,
-       CM.bench "qsort2 -- Bird 2:"  $ CM.nf qsort2 sample
+       CM.bench "qsortDiller (using split):"  $ CM.nf qsortDiller sample,
+       CM.bench "qsortLeal (using split'):"   $ CM.nf qsortLeal sample,
+       CM.bench "qsortLealM (using split''):" $ CM.nf qsortLealM sample,
+       CM.bench "qsortBird:"  $ CM.nf qsortBird sample,
+       CM.bench "qsortBirdM:" $ CM.nf qsortBirdM sample
       ] where sample = generate list
               (_split, _split'') = let pivot = head sample
                                    in (split pivot, split'' pivot)
