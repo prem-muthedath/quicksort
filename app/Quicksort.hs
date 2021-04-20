@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Quicksort (defaultMain) where
+module Quicksort where
 
 import System.Random hiding (split)         -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
