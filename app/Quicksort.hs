@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Quicksort where
+module Quicksort (defaultMain, qsortFunctions) where
 
 import System.Random hiding (split)         -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
@@ -94,6 +94,17 @@ qsortBirdM (x:xs) = sortp xs [] []
         sortp (y:ys) us vs = if y < x
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
+
+data Qsort = Diller | Leal | LealM | Bird | BirdM deriving (Eq, Show, Enum)
+
+qsortFunctions :: Ord a => [(Qsort, [a] -> [a])]
+qsortFunctions = map (\x -> (x, qsortFunction x)) [toEnum 0 :: Qsort ..]
+  where qsortFunction :: Ord a => Qsort -> ([a] -> [a])
+        qsortFunction Diller = qsortDiller
+        qsortFunction Leal   = qsortLeal
+        qsortFunction LealM  = qsortLealM
+        qsortFunction Bird   = qsortBird
+        qsortFunction BirdM  = qsortBirdM
 
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 

@@ -3,39 +3,36 @@ module Tests (defaultMain) where
 import Test.QuickCheck
 import Data.List (nub, sort)
 
-import Quicksort hiding (defaultMain)
+import Quicksort (qsortFunctions)
 
+type QCSortFunction = ([Int] -> [Int])
+type QCProperty = [Int] -> Property
 
-data Qsort = Diller | Leal | LealM | Bird | BirdM deriving (Eq, Show, Enum)
-
-qsort :: Ord a => Qsort -> ([a] -> [a])
-qsort Diller  = qsortDiller
-qsort Leal    = qsortLeal
-qsort LealM   = qsortLealM
-qsort Bird    = qsortBird
-qsort BirdM   = qsortBirdM
-
-data TestCase = Ordering | Invariance | Library deriving (Eq, Enum)
+data TestCase = Ordering | Invariance | Library | Min deriving (Eq, Enum)
 
 instance Show TestCase where
   show Ordering    = "*** property: ordered ***"
   show Invariance  = "*** property: invariance ***"
   show Library     = "*** property: library sort ***"
+  show Min         = "*** property: minimum ***"
 
-type SortFunction = ([Int] -> [Int])
-type QCProperty = [Int] -> Property
+testCases :: [TestCase]
+testCases = [toEnum 0 :: TestCase ..]
 
-properties :: SortFunction -> [(TestCase, QCProperty)]
-properties f = map (\tc -> (tc, qcProperty tc)) testCases
-  where testCases :: [TestCase]
-        testCases = [toEnum 0 :: TestCase ..]
-        qcProperty :: TestCase -> QCProperty
-        qcProperty testCase xs = let result = f xs
-                                 in classify_ xs $
-                                    case testCase of
-                                         Ordering   -> ordered result
-                                         Invariance -> result == f result
-                                         Library    -> result == sort xs
+qcProperties :: QCSortFunction -> [(TestCase, QCProperty)]
+qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
+  where qcProperty :: TestCase -> QCProperty
+        qcProperty testCase xs = let result = f xs in
+            case testCase of
+                 Ordering   -> classify_ xs $ ordered result
+                 Invariance -> classify_ xs $ result == f result
+                 Library    -> classify_ xs $ result == sort xs
+                 Min        -> not (null xs) ==> classify_ xs $ head result == minimum xs
+
+classify_ :: Testable prop => [Int] -> prop -> Property
+classify_ xs = classify (xs==[]) "empty" .
+               classify (length xs > 10) "has > 10 elements" .
+               classify (hasDups xs) "has duplicates"
 
 hasDups :: (Ord a) => [a] -> Bool
 hasDups xs = length (nub xs) /= length xs
@@ -45,20 +42,16 @@ ordered []       = True
 ordered [_]      = True
 ordered (x:y:ys) = x <= y && ordered (y:ys)
 
-classify_ :: Testable prop => [Int] -> prop -> Property
-classify_ xs = classify (xs==[]) "empty" .
-               classify (length xs > 10) "has > 10 elements" .
-               classify (hasDups xs) "has duplicates"
-
-runQC :: Qsort -> IO ()
-runQC x = do let sortFunction = qsort x
-             putStrLn $ "\n--- " ++ show x ++ " ---"
-             mapM_(\(testCase, prop) ->
+runQC :: QCSortFunction -> IO ()
+runQC f = mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
-              ) $ properties sortFunction
+              ) $ qcProperties f
 
 defaultMain :: IO ()
-defaultMain = mapM_ (\f -> runQC f) [toEnum 0 :: Qsort ..]
+defaultMain = mapM_ (\(a,f) ->
+    do putStrLn $ "\n--- " ++ show a ++ " ---"
+       runQC f
+    ) qsortFunctions
 
 
