@@ -23,15 +23,14 @@ testCases = [toEnum 0 :: TestCase ..]
 qcProperties :: QCSortFunction -> [(TestCase, QCProperty)]
 qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> QCProperty
-        qcProperty testCase xs = let result = f xs in
-            case testCase of
-                 Ordering   -> classifys xs $ ordered result
-                 Invariance -> classifys xs $ result == f result
-                 Model      -> classifys xs $ result == sort xs
-                 Min        -> forAll (listOf1 arbitrary) $
-                               \ys -> classifys ys $ head (f ys) == minimum ys
-                 Max        -> forAll (listOf1 arbitrary) $
-                               \ys -> classifys ys $ last (f ys) == maximum ys
+        qcProperty testCase = case testCase of
+           Ordering   -> \xs -> classifys xs $ ordered (f xs)
+           Invariance -> \xs -> classifys xs $ f xs == f (f xs)
+           Model      -> \xs -> classifys xs $ f xs == sort xs
+           Min        -> \_ -> forAll (listOf1 arbitrary) $
+                         \xs -> classifys xs $ head (f xs) == minimum xs
+           Max        -> \_ -> forAll (listOf1 arbitrary) $
+                         \xs -> classifys xs $ last (f xs) == maximum xs
 
 classifys :: Testable prop => [Int] -> prop -> Property
 classifys xs = classify (xs==[]) "empty" .
