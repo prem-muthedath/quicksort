@@ -5,9 +5,6 @@ import Data.List (nub, sort)
 
 import Quicksort (qsortFunctions)
 
-type QCSortFunction = ([Int] -> [Int])
-type QCProperty = [Int] -> Property
-
 data TestCase = Ordering | Invariance | Model | Min | Max deriving (Eq, Enum)
 
 instance Show TestCase where
@@ -20,6 +17,23 @@ instance Show TestCase where
 testCases :: [TestCase]
 testCases = [toEnum 0 :: TestCase ..]
 
+hasDups :: (Ord a) => [a] -> Bool
+hasDups xs = length (nub xs) /= length xs
+
+ordered :: [Int] -> Bool
+ordered []       = True
+ordered [_]      = True
+ordered (x:y:ys) = x <= y && ordered (y:ys)
+
+classifys :: Testable prop => [Int] -> prop -> Property
+classifys xs = classify (xs==[]) "empty" .
+               classify (length xs > 10) "has > 10 elements" .
+               classify (ordered xs) "pre-ordered" .
+               classify (hasDups xs) "has duplicates"
+
+type QCSortFunction = ([Int] -> [Int])
+type QCProperty = [Int] -> Property
+
 qcProperties :: QCSortFunction -> [(TestCase, QCProperty)]
 qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> QCProperty
@@ -31,20 +45,6 @@ qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
                          \xs -> classifys xs $ head (f xs) == minimum xs
            Max        -> \_ -> forAll (listOf1 arbitrary) $
                          \xs -> classifys xs $ last (f xs) == maximum xs
-
-classifys :: Testable prop => [Int] -> prop -> Property
-classifys xs = classify (xs==[]) "empty" .
-               classify (length xs > 10) "has > 10 elements" .
-               classify (ordered xs) "pre-ordered" .
-               classify (hasDups xs) "has duplicates"
-
-hasDups :: (Ord a) => [a] -> Bool
-hasDups xs = length (nub xs) /= length xs
-
-ordered :: [Int] -> Bool
-ordered []       = True
-ordered [_]      = True
-ordered (x:y:ys) = x <= y && ordered (y:ys)
 
 runQC :: QCSortFunction -> IO ()
 runQC f = mapM_(\(testCase, prop) ->
