@@ -6,11 +6,11 @@ module Tests (defaultMain) where
 import Test.QuickCheck
 import Data.List (nub, sort)
 
-import Quicksort (qsortFunctions)
+import Quicksort (qsortImplementations)
 
 -- | `TestCase` type definition.
--- each `TestCase` instance is associated with a single property; i.e., a 
--- property is nothing but a function to test a given `TestCase` instance.
+-- each `TestCase` instance refers to a specific quickcheck property; that is,
+-- a quickcheck property is a function to test a given `TestCase` instance.
 data TestCase = Ordering | Invariance | Model | Min | Max deriving (Eq, Enum)
 
 -- | `Show` instance for `TestCase`.
@@ -43,11 +43,11 @@ classifys xs = classify (xs==[]) "empty" .
                classify (hasDups xs) "has duplicates"
 
 -- | some type synonyms.
-type QCSortFunction = ([Int] -> [Int])
+type QsortImplementation = ([Int] -> [Int])
 type QCProperty = [Int] -> Property
 
 -- | quickcheck properties of all test cases.
-qcProperties :: QCSortFunction -> [(TestCase, QCProperty)]
+qcProperties :: QsortImplementation -> [(TestCase, QCProperty)]
 qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> QCProperty
         qcProperty testCase = case testCase of
@@ -60,7 +60,7 @@ qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
                          \xs -> classifys xs $ last (f xs) == maximum xs
 
 -- | run quickcheck tests for a specific haskell quicksort implementation.
-runQC :: QCSortFunction -> IO ()
+runQC :: QsortImplementation -> IO ()
 runQC f = mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
@@ -68,9 +68,9 @@ runQC f = mapM_(\(testCase, prop) ->
 
 -- | run quickcheck tests for all haskell quicksort implementations.
 defaultMain :: IO ()
-defaultMain = mapM_ (\(a, f) ->
-    do putStrLn $ "\n--- " ++ show a ++ " ---"
-       runQC f
-    ) qsortFunctions
+defaultMain = mapM_ (\(name, implementation) ->
+    do putStrLn $ "\n--- " ++ show name ++ " ---"
+       runQC implementation
+    ) qsortImplementations
 
 

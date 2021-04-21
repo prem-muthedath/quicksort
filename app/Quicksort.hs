@@ -3,7 +3,7 @@
 -- | Benchmark haskell quicksort implementations: classic, Diller, Leal, Bird.
 -- author: Prem Muthedath.
 
-module Quicksort (defaultMain, qsortFunctions) where
+module Quicksort (defaultMain, qsortImplementations) where
 
 import System.Random hiding (split)         -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
@@ -105,19 +105,25 @@ qsortBird (x:xs) = sortp xs [] []
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
 
-data Qsort = Classic | Diller | Leal | LealM | Bird deriving (Eq, Show, Enum)
+-- | `QsortName` type definition.
+-- each instance refers to a specfic type of haskell quicksort implementation.
+data QsortName = Classic | Diller | Leal | LealM | Bird deriving (Eq, Show, Enum)
 
-qsortFunctions :: Ord a => [(Qsort, [a] -> [a])]
-qsortFunctions = map (\x -> (x, qsortFunction x)) [toEnum 0 :: Qsort ..]
-  where qsortFunction :: Ord a => Qsort -> ([a] -> [a])
-        qsortFunction Classic = qsortClassic
-        qsortFunction Diller  = qsortDiller
-        qsortFunction Leal    = qsortLeal
-        qsortFunction LealM   = qsortLealM
-        qsortFunction Bird    = qsortBird
+-- | quicksort implementations for all instances of `QsortName`.
+qsortImplementations :: Ord a => [(QsortName, [a] -> [a])]
+qsortImplementations = map (\name -> (name, qsortImplementation name)) [toEnum 0 :: QsortName ..]
+  where qsortImplementation :: Ord a => QsortName -> ([a] -> [a])
+        qsortImplementation Classic = qsortClassic
+        qsortImplementation Diller  = qsortDiller
+        qsortImplementation Leal    = qsortLeal
+        qsortImplementation LealM   = qsortLealM
+        qsortImplementation Bird    = qsortBird
 
+-- | `List` type definition.
+-- each instance represents a specific type of list for benchmarking.
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
+-- | generates a list for a `List` instance for benchmarking.
 generate :: List -> [Int]
 generate Simple        = [19, 3, 78, 5, 4, 33, 77, 21, 7, 58]
 generate Random        = take 1000000 . randomRs (2 :: Int, 10000000 :: Int) . mkStdGen $ 0
