@@ -136,18 +136,16 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
 runBenchmarks :: List -> IO ()
 runBenchmarks list = do
-   putStrLn $ "Benchmark input type: " <> show list
-   CM.defaultMain . return $ CM.bgroup "quicksort" [
+   putStrLn $ "Benchmark input list: " <> show list
+   CM.defaultMain . return $ CM.bgroup "quicksort" $
+      map (\(name, f) -> CM.bench (show name) $ CM.nf f sample) qsortImplementations
+   CM.defaultMain . return $ CM.bgroup "quicksort-split" [
        CM.bench "split:"    $ CM.nf _split sample,      -- nf means normal form
-       CM.bench "split'':"  $ CM.nf _split'' sample,
-       CM.bench "qsortClassic:"  $ CM.nf qsortClassic sample,
-       CM.bench "qsortDiller (using split):"  $ CM.nf qsortDiller sample,
-       CM.bench "qsortLeal (using split'):"   $ CM.nf qsortLeal sample,
-       CM.bench "qsortLealM (using split''):" $ CM.nf qsortLealM sample,
-       CM.bench "qsortBird:" $ CM.nf qsortBird sample
-      ] where sample = generate list
-              (_split, _split'') = let pivot = head sample
-                                   in (split pivot, split'' pivot)
+       CM.bench "split'':"  $ CM.nf _split'' sample
+     ]
+   where sample = generate list
+         (_split, _split'') = let pivot = head sample
+                              in (split pivot, split'' pivot)
 defaultMain :: IO ()
 defaultMain = runBenchmarks Simple
 
