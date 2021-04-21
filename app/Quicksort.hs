@@ -140,8 +140,8 @@ runBenchmarks list = do
    CM.defaultMain . return $ CM.bgroup "quicksort" $
       map (\(name, f) -> CM.bench (show name) $ CM.nf f sample) qsortImplementations
    CM.defaultMain . return $ CM.bgroup "quicksort-split" [
-       CM.bench "split:"    $ CM.nf _split sample,      -- nf means normal form
-       CM.bench "split'':"  $ CM.nf _split'' sample
+       CM.bench "split:"    $ CM.nf _split . tail $ sample,      -- nf means normal form
+       CM.bench "split'':"  $ CM.nf _split'' . tail $ sample
      ]
    where sample = generate list
          (_split, _split'') = let pivot = head sample
