@@ -26,10 +26,12 @@ testCases :: [TestCase]
 testCases = [toEnum 0 :: TestCase ..]
 
 -- | `True` if list has duplicates.
+-- REF: /u/ Wong Jia Hau @ https://tinyurl.com/un79tvk (so)
 hasDups :: (Ord a) => [a] -> Bool
 hasDups xs = length (nub xs) /= length xs
 
 -- | `True` if list is ordered.
+--  REF: chapter 11, real world haskell.
 ordered :: [Int] -> Bool
 ordered []       = True
 ordered [_]      = True
