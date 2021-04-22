@@ -48,9 +48,11 @@ classifys xs = classify (xs==[]) "empty" .
 type QsortImplementation = ([Int] -> [Int])
 type QCProperty = [Int] -> Property
 
--- | quickcheck properties of all `TestCase` types for a given implementation.
-qcProperties :: QsortImplementation -> [(TestCase, QCProperty)]
-qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
+-- | quickcheck test for a given implementation.
+-- NOTE: using junit terminology, a test is actually a collection of test cases.
+-- when we run quickcheck, we feed it a test case; i.e., a `prop_xyz` function.
+qcTest :: QsortImplementation -> [(TestCase, QCProperty)]
+qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> QCProperty
         qcProperty testCase = case testCase of
            Ordering   -> \xs -> classifys xs $ ordered (f xs)
@@ -61,14 +63,14 @@ qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
            Max        -> \_ -> forAll (listOf1 arbitrary) $
                          \xs -> classifys xs $ last (f xs) == maximum xs
 
--- | run quickcheck tests for a specific haskell quicksort implementation.
+-- | run quickcheck on a specific haskell quicksort implementation.
 runQC :: QsortImplementation -> IO ()
 runQC f = mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
-              ) $ qcProperties f
+              ) $ qcTest f
 
--- | run quickcheck tests for all haskell quicksort implementations.
+-- | run quickcheck on all haskell quicksort implementations.
 defaultMain :: IO ()
 defaultMain = mapM_ (\(qsort, implementation) ->
     do putStrLn $ "\n--- " ++ show qsort ++ " ---"
