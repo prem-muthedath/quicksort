@@ -9,8 +9,8 @@ import Data.List (nub, sort)
 import Quicksort (qsortImplementations)
 
 -- | `TestCase` type definition.
--- each `TestCase` instance refers to a specific quickcheck property; that is,
--- a quickcheck property is a function to test a given `TestCase` instance.
+-- each constructor refers to a specific quickcheck property; that is,
+-- a quickcheck property is a function to test a specific test case.
 data TestCase = Ordering | Invariance | Model | Min | Max deriving (Eq, Enum)
 
 -- | `Show` instance for `TestCase`.
@@ -48,7 +48,7 @@ classifys xs = classify (xs==[]) "empty" .
 type QsortImplementation = ([Int] -> [Int])
 type QCProperty = [Int] -> Property
 
--- | quickcheck properties of all test cases.
+-- | quickcheck properties of all `TestCase` types for a given implementation.
 qcProperties :: QsortImplementation -> [(TestCase, QCProperty)]
 qcProperties f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> QCProperty
@@ -70,8 +70,8 @@ runQC f = mapM_(\(testCase, prop) ->
 
 -- | run quickcheck tests for all haskell quicksort implementations.
 defaultMain :: IO ()
-defaultMain = mapM_ (\(name, implementation) ->
-    do putStrLn $ "\n--- " ++ show name ++ " ---"
+defaultMain = mapM_ (\(qsort, implementation) ->
+    do putStrLn $ "\n--- " ++ show qsort ++ " ---"
        runQC implementation
     ) qsortImplementations
 

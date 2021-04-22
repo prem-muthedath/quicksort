@@ -105,14 +105,14 @@ qsortBird (x:xs) = sortp xs [] []
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
 
--- | `QsortName` type definition.
--- each instance refers to a specfic type of haskell quicksort implementation.
-data QsortName = Classic | Diller | Leal | LealM | Bird deriving (Eq, Show, Enum)
+-- | `Qsort` type definition.
+-- each constructor refers to a specfic haskell quicksort implementation.
+data Qsort = Classic | Diller | Leal | LealM | Bird deriving (Eq, Show, Enum)
 
--- | quicksort implementations for all instances of `QsortName`.
-qsortImplementations :: Ord a => [(QsortName, [a] -> [a])]
-qsortImplementations = map (\name -> (name, qsortImplementation name)) [toEnum 0 :: QsortName ..]
-  where qsortImplementation :: Ord a => QsortName -> ([a] -> [a])
+-- | quicksort implementations for all values of `Qsort` type.
+qsortImplementations :: Ord a => [(Qsort, [a] -> [a])]
+qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) [toEnum 0 :: Qsort ..]
+  where qsortImplementation :: Ord a => Qsort -> ([a] -> [a])
         qsortImplementation Classic = qsortClassic
         qsortImplementation Diller  = qsortDiller
         qsortImplementation Leal    = qsortLeal
@@ -120,10 +120,11 @@ qsortImplementations = map (\name -> (name, qsortImplementation name)) [toEnum 0
         qsortImplementation Bird    = qsortBird
 
 -- | `List` type definition.
--- each instance represents a specific type of list for benchmarking.
+-- each constructor refers to a list with specified ordering of elements for 
+-- quicksort benchmarking; example, `Random` => list with items in random order.
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
--- | generates a list for a `List` instance for benchmarking.
+-- | generates a list for a `List` type for benchmarking.
 generate :: List -> [Int]
 generate Simple        = [19, 3, 78, 5, 4, 33, 77, 21, 7, 58]
 generate Random        = take 1000000 . randomRs (2 :: Int, 10000000 :: Int) . mkStdGen $ 0
@@ -131,21 +132,33 @@ generate Descending    = take 10000 [100000,99999..1]  -- worst case
 generate Ascending     = take 10000 [1..] -- worst case
 generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may hang
 
--- benchmark using criterion package.
+-- | benchmark all quicksort implementations on a sample using criteriion.
 -- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
--- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
-runBenchmarks :: List -> IO ()
-runBenchmarks list = do
-   putStrLn $ "Benchmark input list: " <> show list
+benchmarkQuicksort :: [Int] -> IO ()
+benchmarkQuicksort sample =
    CM.defaultMain . return $ CM.bgroup "quicksort" $
-      map (\(name, f) -> CM.bench (show name) $ CM.nf f sample) qsortImplementations
+      map (\(qsort, f) ->
+          CM.bench (show qsort <> ":") $ CM.nf f sample
+      ) qsortImplementations
+
+-- | benchmark quicksort `splits` on a sample using criteriion package.
+-- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
+benchmarkSplits :: [Int] -> IO ()
+benchmarkSplits sample =
    CM.defaultMain . return $ CM.bgroup "quicksort-split" [
        CM.bench "split:"    $ CM.nf _split . tail $ sample,      -- nf means normal form
        CM.bench "split'':"  $ CM.nf _split'' . tail $ sample
-     ]
-   where sample = generate list
-         (_split, _split'') = let pivot = head sample
+   ]
+   where (_split, _split'') = let pivot = head sample
                               in (split pivot, split'' pivot)
+
+-- | run benchmarks.
 defaultMain :: IO ()
-defaultMain = runBenchmarks Simple
+defaultMain =
+  let list :: List    = Simple
+      name :: String  = show list
+      sample :: [Int] = generate list
+  in do putStrLn $ "\n***** benchmark input list: " <> name <> " *****"
+        benchmarkQuicksort sample
+        benchmarkSplits sample
 
