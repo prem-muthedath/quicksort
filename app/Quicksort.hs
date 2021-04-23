@@ -9,18 +9,18 @@ import System.Random hiding (split)         -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
 
 -- | benchmark haskell quicksort implementations -- Classic, Diller, Leal, Bird.
---   here, we study/understand performance differences in implementations.
---   all non-classic implementations (supposedly!!) more efficient.
---   more efficient because they split list in a single pass, rather than 2.
---   see Enrique Santos Leal's comment on Lennart's blog:
---   https://augustss.blogspot.com/search?q=quicksort
+-- here, we study/understand performance differences in implementations.
+-- all non-classic implementations (supposedly!!) more efficient.
+-- more efficient because they split list in a single pass, rather than 2.
+-- see Enrique Santos Leal's comment on Lennart's blog:
+-- https://augustss.blogspot.com/search?q=quicksort
 
---   findings:
+-- findings:
 --   (a) best: Leal, Bird (they are almost same)
 --   (b) LealM ~ Leal
 --   (c) Classic ~ Diller (Classic seems to fare somewhat better)
 
--- classic haskell quicksort implementation.
+-- | classic haskell quicksort implementation.
 -- traverses list twice in each recursive call -- perhaps why it is slower.
 -- performance ~ `qsortDiller`
 -- REF: richard bird,  chapter 7 -- thinking functionally in haskell.
@@ -30,6 +30,7 @@ qsortClassic []     = []
 qsortClassic (x:xs) = qsortClassic [y | y <- xs, y < x] ++ [x] ++
                       qsortClassic [y | y <- xs, x <= y]
 
+-- | antonii diller's quicksort.
 -- http://www.cantab.net/users/antoni.diller/haskell/units/unit07.html
 -- performance ~ `qsortClassic`
 -- worst-case inputs:
@@ -47,6 +48,7 @@ split x (y:ys)
   | otherwise = (less, y:greater)
   where (less, greater) = split x ys
 
+-- | Enrique Leal's quicksort.
 -- https://augustss.blogspot.com/search?q=quicksort
 -- Enrique Santos Leal posted this code in comments to Lennart's quicksort blog.
 -- performance ~ `qsortBird`
@@ -67,11 +69,11 @@ split' p xs = sep xs [] []
           | p o = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
 
--- Leal's code modified so `split'` has ~ type signature as `split`. done to 
--- understand why Leal's code is quicker than `qsortDiller`. with this change, 
--- `qsortLealM` code ~ `qsortDiller`, except for `split''`. yet, `qsortLealM` 
--- has same timings as `qsortLeal`, => `qsortLeal`/`qsortLealM` faster than 
--- `qsortDiller` due to differences between `split` & `split'`/`split''`.
+-- | Leal's quicksort with `split''` that has ~ type signature as `split`.
+-- done to understand why Leal's code is quicker than `qsortDiller`. with this 
+-- change, `qsortLealM` code ~ `qsortDiller`, except for `split''`. yet, 
+-- `qsortLealM` has ~ timings as `qsortLeal`, => `qsortLeal`/`qsortLealM` faster 
+-- than `qsortDiller` due to differences between `split` & `split'`/`split''`.
 -- so what are these differences?
 -- 1. `split` is recursive, while `split'`/`split''` is not => GHC inlines 
 --    `split'`/`split''` but not `split`.
@@ -91,6 +93,7 @@ split'' p xs = sep xs [] []
           | o < p = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
 
+-- | richard bird's quicksort.
 -- richard bird -- chapter 7 -- thinking functionally in haskell.
 -- `sortp` (almost) like `split'`/`split''`; allocates just once (at the end).
 -- `sortp` also non-recursive, so GHC (likely) inlines `sortp`.
@@ -109,9 +112,12 @@ qsortBird (x:xs) = sortp xs [] []
 -- each constructor refers to a specfic haskell quicksort implementation.
 data Qsort = Classic | Diller | Leal | LealM | Bird deriving (Eq, Show, Enum)
 
+-- | type synonym.
+type Name = String
+
 -- | quicksort implementations for all values of `Qsort` type.
-qsortImplementations :: Ord a => [(Qsort, [a] -> [a])]
-qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) [toEnum 0 :: Qsort ..]
+qsortImplementations :: Ord a => [(Name, [a] -> [a])]
+qsortImplementations = map (\qsort -> (show qsort, qsortImplementation qsort)) [toEnum 0 :: Qsort ..]
   where qsortImplementation :: Ord a => Qsort -> ([a] -> [a])
         qsortImplementation Classic = qsortClassic
         qsortImplementation Diller  = qsortDiller
@@ -120,12 +126,15 @@ qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) [toEnu
         qsortImplementation Bird    = qsortBird
 
 -- | `List` type definition.
--- each constructor refers to a list with specified ordering of elements for 
--- quicksort benchmarking; example, `Random` => list with items in random order.
+-- each constructor refers to a specific sample for quicksort benchmarking;
+-- example, `Random` => list with items in random order.
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
 
--- | generates a list for a `List` type for benchmarking.
-generate :: List -> [Int]
+-- | sample for benchmarking.
+type Sample = [Int]
+
+-- | generate a sample for a `List` type for benchmarking.
+generate :: List -> Sample
 generate Simple        = [19, 3, 78, 5, 4, 33, 77, 21, 7, 58]
 generate Random        = take 1000000 . randomRs (2 :: Int, 10000000 :: Int) . mkStdGen $ 0
 generate Descending    = take 10000 [100000,99999..1]  -- worst case
@@ -134,16 +143,16 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 
 -- | benchmark all quicksort implementations on a sample using criteriion.
 -- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
-benchmarkQuicksort :: [Int] -> IO ()
+benchmarkQuicksort :: Sample -> IO ()
 benchmarkQuicksort sample =
    CM.defaultMain . return $ CM.bgroup "quicksort" $
-      map (\(qsort, f) ->
-          CM.bench (show qsort <> ":") $ CM.nf f sample
+      map (\(name, f) ->
+          CM.bench (name <> ":") $ CM.nf f sample
       ) qsortImplementations
 
 -- | benchmark quicksort `splits` on a sample using criteriion package.
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
-benchmarkSplits :: [Int] -> IO ()
+benchmarkSplits :: Sample -> IO ()
 benchmarkSplits sample =
    CM.defaultMain . return $ CM.bgroup "quicksort-split" [
        CM.bench "split:"    $ CM.nf _split . tail $ sample,      -- nf means normal form
@@ -155,10 +164,11 @@ benchmarkSplits sample =
 -- | run benchmarks.
 defaultMain :: IO ()
 defaultMain =
-  let list :: List    = Simple
-      name :: String  = show list
-      sample :: [Int] = generate list
-  in do putStrLn $ "\n***** benchmark input list: " <> name <> " *****"
+  let list :: List     = Simple
+      name :: Name     = show list
+      sample :: Sample = generate list
+      size :: String   = show . length $ sample
+  in do putStrLn $ "\n***** benchmark input list: " <> name <> ", size: " <> size <> "  *****"
         benchmarkQuicksort sample
         benchmarkSplits sample
 

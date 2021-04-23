@@ -72,8 +72,8 @@ runQC f = mapM_(\(testCase, prop) ->
 
 -- | run quickcheck on all haskell quicksort implementations.
 defaultMain :: IO ()
-defaultMain = mapM_ (\(qsort, implementation) ->
-    do putStrLn $ "\n--- " ++ show qsort ++ " ---"
+defaultMain = mapM_ (\(name, implementation) ->
+    do putStrLn $ "\n--- " ++ name ++ " ---"
        runQC implementation
     ) qsortImplementations
 
