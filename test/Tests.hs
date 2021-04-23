@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 -- | QuickCheck tests for haskell quicksort implementations.
 -- author: Prem Muthedath.
 
@@ -6,10 +8,11 @@ module Tests (defaultMain) where
 import Test.QuickCheck
 import Data.List (nub, sort)
 
+import Types (Qsort)
 import Quicksort (qsortImplementations)
 
--- | `TestCase` type definition.
--- each constructor refers to a specific quickcheck property; that is,
+-- | `TestCase` -- specifies test cases for quickcheck testing.
+-- each value refers to a specific quickcheck property; that is,
 -- a quickcheck property is a function to test a specific test case.
 data TestCase = Ordering | Invariance | Model | Min | Max deriving (Eq, Enum)
 
@@ -48,7 +51,7 @@ classifys xs = classify (xs==[]) "empty" .
 type QsortImplementation = ([Int] -> [Int])
 type QCProperty = [Int] -> Property
 
--- | quickcheck test for a given implementation.
+-- | quickcheck test for a given quicksort implementation.
 -- NOTE: using junit terminology, a test is actually a collection of test cases.
 -- when we run quickcheck, we feed it a test case; i.e., a `prop_xyz` function.
 qcTest :: QsortImplementation -> [(TestCase, QCProperty)]
@@ -72,8 +75,8 @@ runQC f = mapM_(\(testCase, prop) ->
 
 -- | run quickcheck on all haskell quicksort implementations.
 defaultMain :: IO ()
-defaultMain = mapM_ (\(name, implementation) ->
-    do putStrLn $ "\n--- " ++ name ++ " ---"
+defaultMain = mapM_ (\(qsort :: Qsort, implementation) ->
+    do putStrLn $ "\n--- " ++ show qsort ++ " ---"
        runQC implementation
     ) qsortImplementations
 

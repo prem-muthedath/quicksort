@@ -117,7 +117,7 @@ variance introduced by outliers: 19% (moderately inflated)
 benchmarking quicksort/Diller:
 time                 26.51 s    (21.91 s .. 29.73 s)
                      0.997 R²   (0.989 R² .. 1.000 R²)
-mean                 26.00 s    (24.89 s .. 26.63 s)      -- worst performance!
+mean                 26.00 s    (24.89 s .. 26.63 s)      -- outlier?
 std dev              1.088 s    (310.7 ms .. 1.464 s)
 variance introduced by outliers: 19% (moderately inflated)
 

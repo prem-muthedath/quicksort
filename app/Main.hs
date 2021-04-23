@@ -3,7 +3,7 @@
 
 module Main where
 
-import Quicksort (defaultMain)
+import Benchmark (defaultMain)
 
 main :: IO ()
 main = defaultMain
