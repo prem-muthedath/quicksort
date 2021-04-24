@@ -7,6 +7,7 @@ module Benchmark (defaultMain) where
 
 import System.Random                        -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
+import Criterion.Measurement.Types (Benchmark)
 
 import Types (Qsort, Name)
 import Quicksort (qsortImplementations, qsortSplits)
@@ -28,18 +29,18 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 
 -- | benchmark all quicksort implementations on a sample using criteriion.
 -- criterion tutorial @ http://www.serpentine.com/criterion/tutorial.html
-benchmarkQuicksort :: Sample -> IO ()
-benchmarkQuicksort sample =
-   CM.defaultMain . return $ CM.bgroup "quicksort" $
+benchQuicksort :: Sample -> Benchmark
+benchQuicksort sample =
+   CM.bgroup "quicksort" $
       map (\(qsort :: Qsort, f) ->
           CM.bench (show qsort <> ":") $ CM.nf f sample
       ) qsortImplementations
 
 -- | benchmark quicksort `splits` on a sample using criteriion package.
 -- modeled after code from https://goo.gl/x5tMH9 (aweinstock @ github).
-benchmarkSplits :: Sample -> IO ()
-benchmarkSplits sample =
-   CM.defaultMain . return $ CM.bgroup "quicksort-splits" $
+benchSplits :: Sample -> Benchmark
+benchSplits sample =
+   CM.bgroup "quicksort-splits" $
       map (\(name :: Name, f) ->
           let pivot = head sample
               g     = f pivot
@@ -55,7 +56,7 @@ defaultMain =
       sample :: Sample = generate list
       size :: String   = show . length $ sample
   in do putStrLn $ "\n***** benchmark sample: " <> name <> ", size: " <> size <> " elements. *****"
-        benchmarkQuicksort sample
-        benchmarkSplits sample
+        let benches = [benchQuicksort, benchSplits]
+        CM.defaultMain $ map (\x -> x sample) benches
 
 
