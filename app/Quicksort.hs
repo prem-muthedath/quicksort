@@ -25,13 +25,12 @@ import Types
 -- traverses list twice in each recursive call -- perhaps why it is slower.
 -- performance ~ `qsortDiller`
 -- REF: richard bird,  chapter 7 -- thinking functionally in haskell.
--- NOTE: GHC requires explicit `forall` at top level for compilation.
 qsortClassic :: (Ord a) => [a] -> [a]
 qsortClassic []     = []
 qsortClassic (x:xs) = qsortClassic [y | y <- xs, y < x] ++ [x] ++
                       qsortClassic [y | y <- xs, x <= y]
 
--- | antonii diller's quicksort.
+-- | antoni diller's quicksort.
 -- http://www.cantab.net/users/antoni.diller/haskell/units/unit07.html
 -- performance ~ `qsortClassic`
 -- worst-case inputs:
@@ -49,7 +48,7 @@ split x (y:ys)
   | otherwise = (less, y:greater)
   where (less, greater) = split x ys
 
--- | Enrique Leal's quicksort.
+-- | enrique leal's quicksort.
 -- https://augustss.blogspot.com/search?q=quicksort
 -- Enrique Santos Leal posted this code in comments to Lennart's quicksort blog.
 -- performance ~ `qsortBird`
@@ -70,7 +69,7 @@ split' p xs = sep xs [] []
           | p o = sep os (o:ps) qs
           | otherwise = sep os ps (o:qs)
 
--- | Leal's quicksort with `split''` that has ~ type signature as `split`.
+-- | leal's quicksort with `split''` that has ~ type signature as `split`.
 -- done to understand why Leal's code is quicker than `qsortDiller`. with this 
 -- change, `qsortLealM` code ~ `qsortDiller`, except for `split''`. yet, 
 -- `qsortLealM` has ~ timings as `qsortLeal`, => `qsortLeal`/`qsortLealM` faster 
@@ -109,9 +108,9 @@ qsortBird (x:xs) = sortp xs [] []
           then sortp ys (y:us) vs
           else sortp ys us (y:vs)
 
--- | quicksort implementations specified by `Qsort`.
+-- | all quicksort implementations specified by `Qsort`.
 qsortImplementations :: Ord a => [(Qsort, [a] -> [a])]
-qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) [toEnum 0 :: Qsort ..]
+qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) qsorts
   where qsortImplementation :: Ord a => Qsort -> ([a] -> [a])
         qsortImplementation Classic = qsortClassic
         qsortImplementation Diller  = qsortDiller

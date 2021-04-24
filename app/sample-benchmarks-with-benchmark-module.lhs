@@ -1,5 +1,18 @@
 -- sample benchmarks after creation of Benchmark.hs -- 23 APR 2021.
 -- author: Prem Muthedath.
+
+-- NOTE: with addition of `Benchmark` module, timings of all implementations, 
+-- especially of `Leal`, `LealM`, `Bird`, are slightly higher than what they 
+-- were before, when all benchmarking code resided in `Quicksort` module. So it 
+-- looks like we have deliberately skewed performance, but that is not a valid 
+-- concern case really, even though performance is indeed affected.
+--
+-- Benchmarking code aims to accurately simulate what clients of a piece of 
+-- software experience, because clients decide real-world performance.  And 
+-- these real-world clients usually reside in another module or library.  So 
+-- having code in `Benchmark` module (the client) call code in `Quicksort` 
+-- module is a perfectly valid real-world scenario, and, therefore, the 
+-- benchmarks we get are very valid.
 --------------------------------------------------------------------------------
 
 ***** benchmark input list: Simple, size: 10  *****

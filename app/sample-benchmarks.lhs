@@ -1,5 +1,8 @@
 -- sample benchmarks -- 23 APR 2021.
 -- author: Prem Muthedath
+
+-- NOTE: these benchmarks collected when all benchmarking code and quicksort 
+-- implementations resided in the same module, i.e., `Quicksort` module.
 --------------------------------------------------------------------------------
 
 ***** benchmark input list: Simple, size: 10  *****
