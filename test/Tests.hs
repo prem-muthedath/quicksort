@@ -30,33 +30,31 @@ testCases = [toEnum 0 :: TestCase ..]
 
 -- | `True` if list has duplicates.
 -- REF: /u/ Wong Jia Hau @ https://tinyurl.com/un79tvk (so)
-hasDups :: (Ord a) => [a] -> Bool
+hasDups :: Ord a => [a] -> Bool
 hasDups xs = length (nub xs) /= length xs
 
 -- | `True` if list is ordered.
 --  REF: chapter 11, real world haskell.
-ordered :: [Int] -> Bool
+ordered :: Ord a => [a] -> Bool
 ordered []       = True
 ordered [_]      = True
 ordered (x:y:ys) = x <= y && ordered (y:ys)
 
 -- | quickcheck `classifications` for a property.
-classifys :: Testable prop => [Int] -> prop -> Property
+classifys :: (Ord a, Testable prop) => [a] -> prop -> Property
 classifys xs = classify (xs==[]) "empty" .
                classify (length xs > 10) "has > 10 elements" .
                classify (ordered xs) "pre-ordered" .
                classify (hasDups xs) "has duplicates"
 
--- | some type synonyms.
-type QsortImplementation = ([Int] -> [Int])
-type QCProperty = [Int] -> Property
-
 -- | quickcheck test for a given quicksort implementation.
 -- NOTE: using junit terminology, a test is actually a collection of test cases.
 -- when we run quickcheck, we feed it a test case; i.e., a `prop_xyz` function.
-qcTest :: QsortImplementation -> [(TestCase, QCProperty)]
+qcTest :: forall a. (Ord a, Show a, Arbitrary a)
+       => ([a] -> [a])
+       -> [(TestCase, [a] -> Property)]
 qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
-  where qcProperty :: TestCase -> QCProperty
+  where qcProperty :: TestCase -> [a] -> Property
         qcProperty testCase = case testCase of
            Ordering   -> \xs -> classifys xs $ ordered (f xs)
            Invariance -> \xs -> classifys xs $ f xs == f (f xs)
@@ -67,7 +65,9 @@ qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
                          \xs -> classifys xs $ last (f xs) == maximum xs
 
 -- | run quickcheck on a specific haskell quicksort implementation.
-runQC :: QsortImplementation -> IO ()
+runQC :: (Ord a, Show a, Arbitrary a)
+      => ([a] -> [a])
+      -> IO ()
 runQC f = mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
@@ -75,9 +75,11 @@ runQC f = mapM_(\(testCase, prop) ->
 
 -- | run quickcheck on all haskell quicksort implementations.
 defaultMain :: IO ()
-defaultMain = mapM_ (\(qsort :: Qsort, implementation) ->
-    do putStrLn $ "\n--- " ++ show qsort ++ " ---"
-       runQC implementation
-    ) qsortImplementations
+defaultMain =
+  mapM_ (\(qsort :: Qsort,
+           impl  :: [Maybe Int] -> [Maybe Int])
+           -> do putStrLn $ "\n--- " ++ show qsort ++ " ---"
+                 runQC impl
+  ) qsortImplementations
 
 
