@@ -9,7 +9,7 @@ import System.Random                        -- for randomRs, mkStdGen
 import qualified Criterion.Main as CM       -- for running benchmarks
 import Criterion.Measurement.Types (Benchmark)
 
-import Types (Qsort, Name)
+import Types (Qsort, Name, Implementation(..))
 import Quicksort (qsortImplementations, qsortSplits)
 
 -- | `List` -- specifies samples for quicksort benchmarking.
@@ -32,7 +32,7 @@ generate BigDescending = take 1000000 [10000000,9999999..1] -- very bad, may han
 benchQuicksort :: Sample -> Benchmark
 benchQuicksort sample =
    CM.bgroup "quicksort" $
-      map (\(qsort :: Qsort, f) ->
+      map (\(qsort :: Qsort, Implementation f) ->
           CM.bench (show qsort <> ":") $ CM.nf f sample
       ) qsortImplementations
 

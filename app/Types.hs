@@ -1,3 +1,5 @@
+{-# LANGUAGE RankNTypes #-}
+
 -- | Types for quicksort.
 -- author: Prem Muthedath.
 
@@ -14,5 +16,10 @@ qsorts = [toEnum 0 :: Qsort ..]
 
 -- | type synonym for a string that represents a name.
 type Name = String
+
+-- | specifies a quicksort function.
+-- NOTE: `forall` requires `RankNTypes` language extension.
+-- this type introduced to solve the problem described in ../notes/problem.hs
+newtype Implementation = Implementation (forall a. Ord a => [a] -> [a])
 
 

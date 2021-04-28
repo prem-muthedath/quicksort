@@ -6,10 +6,12 @@
 module Tests (defaultMain) where
 
 import Test.QuickCheck
+
 import Data.List (nub, sort)
 
-import Types (Qsort)
+import Types (Qsort, Implementation(..))
 import Quicksort (qsortImplementations)
+import Terminal
 
 -- | `TestCase` -- specifies test cases for quickcheck testing.
 -- each value refers to a specific quickcheck property; that is,
@@ -66,20 +68,46 @@ qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
 
 -- | run quickcheck on a specific haskell quicksort implementation.
 runQC :: (Ord a, Show a, Arbitrary a)
-      => ([a] -> [a])
+      => Qsort
+      -> Option
+      -> ([a] -> [a])
       -> IO ()
-runQC f = mapM_(\(testCase, prop) ->
+runQC qsort opt f = do
+  putStrLn $ "\n--- " ++ show qsort ++ " ---"
+  putStrLn . show $ opt
+  mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
               ) $ qcTest f
 
 -- | run quickcheck on all haskell quicksort implementations.
+-- offers commandline option for specifying input list data type for quickcheck 
+-- tests. if none specified, uses `[Int]` as default.
+-- NOTE: to do different type annotations of a polymorphic function, we:
+--    1. examined the problem: GHC complains if we do multiple type annotations 
+--       of a polymorphic function (as done in code below). for an exact 
+--       simulation of the problem, see ../notes/problem.hs
+--    2. /u/ joel @ haskell irc solved this issue using `RankNTypes` extension; 
+--       see /u/ joel's code @ https://paste.tomsmeding.com/qkTRpcFx; see also 
+--       /u/ jon purdy @ https://tinyurl.com/5rs2nn2w (so)
+--    3. Prem refined solution from (2) -- see ../notes/solution.hs.
+--    4. based on 1-3, defined a newtype `Implementation` (polymorphic) in 
+--       app/Types.hs, using `RankNTypes` extension.
+--    5. modified `qsortImplementions` type signature in app/Quicksort.hs to 
+--       include `Implementation`.
+--    6. related changes made in app/Benchmark.hs (for compilation).
 defaultMain :: IO ()
-defaultMain =
-  mapM_ (\(qsort :: Qsort,
-           impl  :: [Maybe Int] -> [Maybe Int])
-           -> do putStrLn $ "\n--- " ++ show qsort ++ " ---"
-                 runQC impl
-  ) qsortImplementations
+defaultMain = do
+  opt :: Option <- option
+  mapM_ (\(qsort :: Qsort, Implementation f) ->
+    do case opt of
+            Default     -> runQC qsort opt (f :: [Int] -> [Int])
+            Letter      -> runQC qsort opt (f :: [Char] -> [Char])
+            MaybeInt    -> runQC qsort opt (f :: [Maybe Int] -> [Maybe Int])
+            MaybeChar   -> runQC qsort opt (f :: [Maybe Char] -> [Maybe Char])
+            EitherInt   -> runQC qsort opt (f :: [Either String Int] -> [Either String Int])
+            EitherChar  -> runQC qsort opt (f :: [Either String Char] -> [Either String Char])
+    ) qsortImplementations
+
 
 

@@ -60,7 +60,7 @@ executable quicksort
     other-modules:   Types, Benchmark, Quicksort
 
     -- LANGUAGE extensions used by modules in this package.
-    other-extensions: ScopedTypeVariables
+    other-extensions: ScopedTypeVariables, RankNTypes
 
     -- Other library packages from which modules are imported.
     build-depends:    base ==4.14.1.0,
@@ -85,7 +85,7 @@ test-suite quicksort-test
     type:             exitcode-stdio-1.0
 
     -- Modules included in this executable, other than Main.
-    other-modules:    Tests, Types, Quicksort
+    other-modules:    Tests, Terminal, Types, Quicksort
 
     -- LANGUAGE extensions used by modules in this package.
     other-extensions: ScopedTypeVariables

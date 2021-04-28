@@ -109,14 +109,14 @@ qsortBird (x:xs) = sortp xs [] []
           else sortp ys us (y:vs)
 
 -- | all quicksort implementations specified by `Qsort`.
-qsortImplementations :: Ord a => [(Qsort, [a] -> [a])]
+qsortImplementations :: [(Qsort, Implementation)]
 qsortImplementations = map (\qsort -> (qsort, qsortImplementation qsort)) qsorts
-  where qsortImplementation :: Ord a => Qsort -> ([a] -> [a])
-        qsortImplementation Classic = qsortClassic
-        qsortImplementation Diller  = qsortDiller
-        qsortImplementation Leal    = qsortLeal
-        qsortImplementation LealM   = qsortLealM
-        qsortImplementation Bird    = qsortBird
+  where qsortImplementation :: Qsort -> Implementation
+        qsortImplementation Classic = Implementation qsortClassic
+        qsortImplementation Diller  = Implementation qsortDiller
+        qsortImplementation Leal    = Implementation qsortLeal
+        qsortImplementation LealM   = Implementation qsortLealM
+        qsortImplementation Bird    = Implementation qsortBird
 
 -- | splits used in quicksort implementations.
 qsortSplits :: Ord a => [(Name, a -> [a] -> ([a], [a]))]
