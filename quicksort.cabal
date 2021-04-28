@@ -47,7 +47,9 @@ extra-source-files: CHANGELOG.md,
                     cabal.project.freeze,
                     app/sample-benchmarks.lhs,
                     app/sample-benchmarks-with-benchmark-module.lhs,
-                    test/sample-test-results.lhs
+                    test/sample-test-results.lhs,
+                    notes/problem.hs,
+                    notes/solution.hs
 
 -- compiler version
 tested-with: GHC == 8.10.4
