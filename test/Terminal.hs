@@ -19,11 +19,7 @@ import qualified Data.Map as M
 usage :: String
 usage = intercalate "\n" (header : body)
   where header :: String
-        header = command <> "[" <> intercalate " | " uflags <> "]"
-        command :: String
-        command = "Usage: cabal v2-run :quicksort-test -- "
-        uflags :: [String]
-        uflags = M.elems flags <> [help]
+        header = "Usage: cabal v2-run :quicksort-test -- " <> "[" <> intercalate " | " clFlags <> "]"
         body :: [String]
         body = map (\x -> optionline x) options <> [helpline]
         optionline :: Option -> String
@@ -33,53 +29,59 @@ usage = intercalate "\n" (header : body)
         helpline :: String
         helpline = pad help <> "print this help message and exit."
         pad :: String -> String
-        pad str = replicate 3 ' ' <> str <> replicate (fsize - length str) ' '
-        fsize :: Int
-        fsize = let offset = 5 in (maximum . map (\x -> length x) $ uflags) + offset
+        pad flag' = replicate 3 ' ' <> flag' <> replicate (width - length flag') ' '
+        width :: Int
+        width = let offset = 5 in (maximum . map (\x -> length x) $ clFlags) + offset
 
--- | all `Option` values.
-options :: [Option]
-options = [toEnum 0 :: Option ..]
+-- | commandline flags. includes `help` flag.
+clFlags :: [String]
+clFlags = M.elems flags <> [help]
 
--- | maps `Option` values to string representation of their list types.
+-- | list type string representations associated with `Option` values.
 lists :: M.Map Option String
-lists = M.fromList [
-    (Default,    "[Int]"),
-    (Letter,     "[Char]"),
-    (MaybeInt,   "[Maybe Int]"),
-    (MaybeChar,  "[Maybe Char]"),
-    (EitherInt,  "[Either String Int]"),
-    (EitherChar, "[Either String Char]")
-  ]
+lists = M.fromList $
+  map (\x -> case x of
+      Default     -> (x, "[Int]")
+      Letter      -> (x, "[Char]")
+      MaybeInt    -> (x, "[Maybe Int]")
+      MaybeChar   -> (x, "[Maybe Char]")
+      EitherInt   -> (x, "[Either String Int]")
+      EitherChar  -> (x, "[Either String Char]")
+  ) options
 
--- | returns string representation of list type mapped to an `Option`.
+-- | list type string representation associated with an `Option`.
 list :: Option -> String
 list opt = get opt lists
 
--- | returns value mapped to an `Option`.
+-- | returns value associated with an `Option`.
 get :: Option -> M.Map Option String -> String
 get key map_ = case (M.lookup key map_) of
   Just x  -> x
   Nothing -> error $ "no such key: " <> show key
 
--- | maps `Option` values to commandline flags.
+-- | commandline flags associated with `Option` values. `help` flag not in.
 flags :: M.Map Option String
-flags = M.fromList [
-    (Default,    "--int"),
-    (Letter,     "--char"),
-    (MaybeInt,   "--maybe-int"),
-    (MaybeChar,  "--maybe-char"),
-    (EitherInt,  "--either-int"),
-    (EitherChar, "--either-char")
-  ]
+flags = M.fromList $
+  map (\x -> case x of
+      Default     -> (x, "--int")
+      Letter      -> (x, "--char")
+      MaybeInt    -> (x, "--maybe-int")
+      MaybeChar   -> (x, "--maybe-char")
+      EitherInt   -> (x, "--either-int")
+      EitherChar  -> (x, "--either-char")
+  ) options
 
 -- | commandline `help` flag.
 help :: String
 help = "--help"
 
--- | returns commandline flag mapped to an `Option`.
+-- | commandline flag associated with an `Option`.
 flag :: Option -> String
 flag opt = get opt flags
+
+-- | all `Option` values.
+options :: [Option]
+options = [toEnum 0 :: Option ..]
 
 -- | specifies list data types as options for quickcheck testing.
 data Option
@@ -96,16 +98,12 @@ data Option
 option :: IO Option
 option = do
   opt :: [String] <- getArgs
-  case () of
-    _ | opt == []                 -> return Default
-      | opt == [flag Default]     -> return Default
-      | opt == [flag Letter]      -> return Letter
-      | opt == [flag MaybeInt]    -> return MaybeInt
-      | opt == [flag MaybeChar]   -> return MaybeChar
-      | opt == [flag EitherInt]   -> return EitherInt
-      | opt == [flag EitherChar]  -> return EitherChar
-      | opt == [help]             -> putStrLn (usage) >> exitSuccess
-      | otherwise                 -> putStrLn (bad opt) >> exitFailure
+  let match :: [Option] = filter (\x -> opt == [flag x]) options
+  if length match == 1 then return $ head match
+  else case () of
+    _ | opt == []     -> return Default
+      | opt == [help] -> putStrLn (usage) >> exitSuccess
+      | otherwise     -> putStrLn (bad opt) >> exitFailure
   where bad :: [String] -> String
         bad y = "Unrecognized option: " <> intercalate " " y <> "\n" <> usage
 
