@@ -74,7 +74,7 @@ runQC :: (Ord a, Show a, Arbitrary a)
       -> IO ()
 runQC qsort opt f = do
   putStrLn $ "\n--- " ++ show qsort ++ " ---"
-  putStrLn . show $ opt
+  putStrLn $ "testing with: " <> list opt
   mapM_(\(testCase, prop) ->
               do putStrLn $ show testCase
                  quickCheck prop
@@ -83,6 +83,13 @@ runQC qsort opt f = do
 -- | run quickcheck on all haskell quicksort implementations.
 -- offers commandline option for specifying input list data type for quickcheck 
 -- tests. if none specified, uses `[Int]` as default.
+--
+-- NOTE: this commandline option is only provided as a convenience for users, 
+-- and not as a way to verify the validity of quicksort tests. for we know that 
+-- as long as our sort functions are polymorphic with `Ord` class constraint, we 
+-- can be sure that if quickcheck tests pass for one type, say `[Int]`, the sort 
+-- function will work for all other types. this is one of the "free" theorems.
+--
 -- NOTE: to do different type annotations of a polymorphic function, we:
 --    1. examined the problem: GHC complains if we do multiple type annotations 
 --       of a polymorphic function (as done in code below). for an exact 
