@@ -55,9 +55,10 @@ list opt = get opt lists
 
 -- | returns value associated with an `Option`.
 get :: Option -> M.Map Option String -> String
-get key map_ = case (M.lookup key map_) of
-  Just x  -> x
-  Nothing -> error $ "no such key: " <> show key
+get key map_ =
+  case (M.lookup key map_) of
+       Just x  -> x
+       Nothing -> error $ "no such key: " <> show key
 
 -- | commandline flags associated with `Option` values. `help` flag not in.
 flags :: M.Map Option String
@@ -101,9 +102,9 @@ option = do
   let match :: [Option] = filter (\x -> opt == [flag x]) options
   if length match == 1 then return $ head match
   else case () of
-    _ | opt == []     -> return Default
-      | opt == [help] -> putStrLn (usage) >> exitSuccess
-      | otherwise     -> putStrLn (bad opt) >> exitFailure
+        _ | opt == []     -> return Default
+          | opt == [help] -> putStrLn (usage) >> exitSuccess
+          | otherwise     -> putStrLn (bad opt) >> exitFailure
   where bad :: [String] -> String
         bad y = "Unrecognized option: " <> intercalate " " y <> "\n" <> usage
 
