@@ -75,10 +75,10 @@ runQC :: (Ord a, Show a, Arbitrary a)
 runQC qsort opt f = do
   putStrLn $ "\n--- " ++ show qsort ++ " ---"
   putStrLn $ "testing with: " <> list opt
-  mapM_(\(testCase, prop) ->
-              do putStrLn $ show testCase
-                 quickCheck prop
-              ) $ qcTest f
+  mapM_ (\(testCase, prop) ->
+       do putStrLn $ show testCase
+          quickCheck prop
+    ) $ qcTest f
 
 -- | run quickcheck on all haskell quicksort implementations.
 -- offers commandline option for specifying input list type for quickcheck 
