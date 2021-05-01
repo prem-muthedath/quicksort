@@ -81,14 +81,15 @@ runQC qsort opt f = do
               ) $ qcTest f
 
 -- | run quickcheck on all haskell quicksort implementations.
--- offers commandline option for specifying input list data type for quickcheck 
+-- offers commandline option for specifying input list type for quickcheck 
 -- tests. if none specified, uses `[Int]` as default.
 --
 -- NOTE: this commandline option is only provided as a convenience for users, 
--- and not as a way to verify the validity of quicksort tests. for we know that 
--- as long as our sort functions are polymorphic with `Ord` class constraint, we 
--- can be sure that if quickcheck tests pass for one type, say `[Int]`, the sort 
--- function will work for all other types. this is one of the "free" theorems.
+-- and not as a way to verify validity of quicksort tests for different list 
+-- types. for we know that as long as our sort functions are polymorphic with 
+-- `Ord` class constraint, we can be sure that if quickcheck tests pass for one 
+-- type, say `[Int]`, the sort function will work for all other types. this is 
+-- one of the "free" theorems.
 --
 -- NOTE: to do different type annotations of a polymorphic function, we:
 --    1. examined the problem: GHC complains if we do multiple type annotations 
@@ -103,11 +104,18 @@ runQC qsort opt f = do
 --    5. modified `qsortImplementions` type signature in app/Quicksort.hs to 
 --       include `Implementation`.
 --    6. related changes made in app/Benchmark.hs (for compilation).
+--    7. in code below, `runQC qsort opt` is repeated, but factoring out common 
+--       items outside the `case` (i.e., `runQC qsort opt $ case opt of`) will 
+--       lead to same problem in (1), b'cause `runQC` is polymorphic. the 
+--       solution is same as in (2) - (3); that is: create a newtype, say `Foo`, 
+--       to pack ` (i.e., generalize) `runQC qsort opt`, then unpack it (i.e., 
+--       specialize) where needed. this is what /u/ jon prudy (see 2) has 
+--       outlined, but it is not worth the effort here.
 defaultMain :: IO ()
 defaultMain = do
   opt :: Option <- option
   mapM_ (\(qsort :: Qsort, Implementation f) ->
-    do case opt of
+       case opt of
             Default     -> runQC qsort opt (f :: [Int] -> [Int])
             Letter      -> runQC qsort opt (f :: [Char] -> [Char])
             MaybeInt    -> runQC qsort opt (f :: [Maybe Int] -> [Maybe Int])
