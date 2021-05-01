@@ -21,5 +21,5 @@ main = mapM_ (\(i, j) ->
   case i of
     0 -> g (j :: [Int] -> [Int]) [1..5]     -- this line compiles fine.
     1 -> g (j :: [Char] -> [Char]) "hello"  -- this line does not compile.
-  ) [(0,f), (1, h)]
+  ) [(0, f), (1, h)]
 

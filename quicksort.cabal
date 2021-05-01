@@ -90,10 +90,12 @@ test-suite quicksort-test
     other-modules:    Tests, Terminal, Types, Quicksort
 
     -- LANGUAGE extensions used by modules in this package.
-    other-extensions: ScopedTypeVariables
+    other-extensions: ScopedTypeVariables, RankNTypes
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ==4.14.1.0, QuickCheck ==2.14.2, containers ==0.6.2.1
+    build-depends:    base ==4.14.1.0,
+                      QuickCheck ==2.14.2,
+                      containers ==0.6.2.1
 
     -- Directories containing source files.
     hs-source-dirs:   test, app

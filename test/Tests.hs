@@ -54,9 +54,9 @@ classifys xs = classify (xs==[]) "empty" .
 -- when we run quickcheck, we feed it a test case; i.e., a `prop_xyz` function.
 qcTest :: forall a. (Ord a, Show a, Arbitrary a)
        => ([a] -> [a])
-       -> [(TestCase, [a] -> Property)]
+       -> [(TestCase, ([a] -> Property))]
 qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
-  where qcProperty :: TestCase -> [a] -> Property
+  where qcProperty :: TestCase -> ([a] -> Property)
         qcProperty testCase = case testCase of
            Ordering   -> \xs -> classifys xs $ ordered (f xs)
            Invariance -> \xs -> classifys xs $ f xs == f (f xs)
