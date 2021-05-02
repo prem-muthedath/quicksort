@@ -16,12 +16,13 @@ import Terminal
 -- | `TestCase` -- specifies test cases for quickcheck testing.
 -- each value refers to a specific quickcheck property; that is,
 -- a quickcheck property is a function to test a specific test case.
-data TestCase = Ordering | Invariance | Model | Min | Max deriving (Eq, Enum)
+data TestCase = Ordering | Length | Idempotent | Model | Min | Max deriving (Eq, Enum)
 
 -- | `Show` instance for `TestCase`.
 instance Show TestCase where
   show Ordering    = "*** property: ordered ***"
-  show Invariance  = "*** property: invariance ***"
+  show Length      = "*** property: length invariance ***"
+  show Idempotent  = "*** property: idempotent ***"
   show Model       = "*** property: model sort equivalence ***"
   show Min         = "*** property: minimum ***"
   show Max         = "*** property: maximum ***"
@@ -59,7 +60,8 @@ qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> ([a] -> Property)
         qcProperty testCase = case testCase of
            Ordering   -> \xs -> classifys xs $ ordered (f xs)
-           Invariance -> \xs -> classifys xs $ f xs == f (f xs)
+           Length     -> \xs -> classifys xs $ length (f xs) == length xs
+           Idempotent -> \xs -> classifys xs $ f xs == f (f xs)
            Model      -> \xs -> classifys xs $ f xs == sort xs
            Min        -> \_ -> forAll (listOf1 arbitrary) $
                          \xs -> classifys xs $ head (f xs) == minimum xs
