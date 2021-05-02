@@ -13,8 +13,8 @@ import System.Exit (exitSuccess, exitFailure)
 import Data.List (intercalate)
 
 -- | commandline flags. includes `help` flag.
-clFlags :: [String]
-clFlags = map (\x -> flag x) options  <> [help]
+flags :: [String]
+flags = map (\x -> flag x) options  <> [help]
 
 -- | cabal commandline usage information (for display to user).
 -- for passing commandline option to a program run using `cabal v2-run`, see /u/ 
@@ -22,7 +22,7 @@ clFlags = map (\x -> flag x) options  <> [help]
 usage :: String
 usage = intercalate "\n" (header : body)
   where header :: String
-        header = "Usage: cabal v2-run :quicksort-test -- " <> "[" <> intercalate " | " clFlags <> "]"
+        header = "Usage: cabal v2-run :quicksort-test -- " <> "[" <> intercalate " | " flags <> "]"
         body :: [String]
         body = map (\x -> optionline x) options <> [helpline]
         optionline :: Option -> String
@@ -34,7 +34,7 @@ usage = intercalate "\n" (header : body)
         pad :: String -> String
         pad flag' = replicate 3 ' ' <> flag' <> replicate (width - length flag') ' '
         width :: Int
-        width = let offset = 5 in (maximum . map (\x -> length x) $ clFlags) + offset
+        width = let offset = 5 in (maximum . map (\x -> length x) $ flags) + offset
 
 -- | commandline `help` flag.
 help :: String
