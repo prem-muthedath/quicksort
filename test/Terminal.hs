@@ -18,18 +18,16 @@ flags = map (\x -> flag x) options  <> [help]
 -- | cabal commandline usage information (for display to user).
 -- for passing commandline option to a program run using `cabal v2-run`, see /u/ 
 -- hvr @ https://github.com/haskell/cabal/issues/6074
-usage :: String
-usage = intercalate "\n" (header : body)
-  where header :: String
-        header = "Usage: cabal v2-run :quicksort-test -- " <> "[" <> intercalate " | " flags <> "]"
-        body :: [String]
-        body = map (\x -> optionline x) options <> [helpline]
-        optionline :: Option -> String
+usage :: IO ()
+usage =
+  do putStr $ "Usage: cabal v2-run :quicksort-test -- "
+     putStrLn $ "[" <> intercalate " | " flags <> "]"
+     mapM_ (\x -> putStrLn $ optionline x) options
+     putStrLn $ pad help <> "print this help message and exit."
+  where optionline :: Option -> String
         optionline x = pad (flag x) <> "test with: " <> show x <> ending x
         ending :: Option -> String
         ending x = if x == Default then ". This is the default." else "."
-        helpline :: String
-        helpline = pad help <> "print this help message and exit."
         pad :: String -> String
         pad flag' = replicate 3 ' ' <> flag' <> replicate (width - length flag') ' '
         width :: Int
@@ -80,9 +78,10 @@ option = do
   if length match == 1 then return $ head match
   else case () of
         _ | opt == []     -> return Default
-          | opt == [help] -> putStrLn (usage) >> exitSuccess
-          | otherwise     -> putStrLn (bad opt) >> exitFailure
-  where bad :: [String] -> String
-        bad y = "Unrecognized option: " <> intercalate " " y <> "\n" <> usage
+          | opt == [help] -> usage >> exitSuccess
+          | otherwise     -> bad opt >> exitFailure
+  where bad :: [String] -> IO ()
+        bad y = do putStrLn $ "Unrecognized option: " <> intercalate " " y
+                   usage
 
 
