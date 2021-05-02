@@ -12,6 +12,10 @@ import System.Environment (getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import Data.List (intercalate)
 
+-- | commandline flags. includes `help` flag.
+clFlags :: [String]
+clFlags = map (\x -> flag x) options  <> [help]
+
 -- | cabal commandline usage information (for display to user).
 -- for passing commandline option to a program run using `cabal v2-run`, see /u/ 
 -- hvr @ https://github.com/haskell/cabal/issues/6074
@@ -32,10 +36,6 @@ usage = intercalate "\n" (header : body)
         width :: Int
         width = let offset = 5 in (maximum . map (\x -> length x) $ clFlags) + offset
 
--- | commandline flags. includes `help` flag.
-clFlags :: [String]
-clFlags = map (\x -> flag x) options  <> [help]
-
 -- | list type string representation associated with an `Option`.
 list :: Option -> String
 list Default     =  "[Int]"
@@ -45,6 +45,10 @@ list MaybeChar   =  "[Maybe Char]"
 list EitherInt   =  "[Either String Int]"
 list EitherChar  =  "[Either String Char]"
 
+-- | commandline `help` flag.
+help :: String
+help = "--help"
+
 -- | commandline flag associated with an `Option`.
 flag :: Option -> String
 flag Default     =  "--int"
@@ -53,10 +57,6 @@ flag MaybeInt    =  "--maybe-int"
 flag MaybeChar   =  "--maybe-char"
 flag EitherInt   =  "--either-int"
 flag EitherChar  =  "--either-char"
-
--- | commandline `help` flag.
-help :: String
-help = "--help"
 
 -- | all `Option` values.
 options :: [Option]
