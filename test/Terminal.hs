@@ -3,8 +3,7 @@
 -- | Defines & parses terminal commandline options for running quickcheck tests.
 -- author: Prem Muthedath.
 
--- NOTE: code modeled after example at haskell wiki @ 
--- https://tinyurl.com/5d7pkh9k
+-- NOTE: design uses ideas from haskell wiki @ https://tinyurl.com/5d7pkh9k
 
 module Terminal (option, Option(..)) where
 

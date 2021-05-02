@@ -106,13 +106,13 @@ runQC qsort opt f = do
 --    5. modified `qsortImplementions` type signature in app/Quicksort.hs to 
 --       include `Implementation`.
 --    6. related changes made in app/Benchmark.hs (for compilation).
---    7. in code below, `runQC qsort opt` is repeated, but factoring out common 
---       items outside the `case` (i.e., `runQC qsort opt $ case opt of`) will 
---       lead to same problem in (1), b'cause `runQC` is polymorphic. the 
---       solution is same as in (2) - (3); that is: create a newtype, say `Foo`, 
---       to pack ` (i.e., generalize) `runQC qsort opt`, then unpack it (i.e., 
---       specialize) where needed. this is what /u/ jon prudy (see 2) has 
---       outlined, but it is not worth the effort here.
+--    7. after we've done 1-6, the code (see below) still has a harmless wart: 
+--       `runQC qsort opt` is repeated, but factoring it out (i.e., `runQC qsort 
+--       opt $ case opt of ...`) will lead to same problem in (1), b'cause 
+--       `runQC` is polymorphic. the solution is same as in (2) - (3): create a 
+--       newtype, say `Foo`, to pack (i.e., generalize) `runQC qsort opt`, then 
+--       unpack it (i.e., specialize) where needed, just as /u/ jon prudy (see 
+--       2) has outlined, but it is not worth the effort here.
 defaultMain :: IO ()
 defaultMain = do
   opt :: Option <- option
