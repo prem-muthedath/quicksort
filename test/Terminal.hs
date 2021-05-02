@@ -23,7 +23,8 @@ printCabalUsage =
   do putStr $ "Usage: cabal v2-run :quicksort-test -- "
      putStrLn $ "[" <> intercalate " | " flags <> "]"
      mapM_ (\x -> printLine x) options
-     putStrLn $ pad help <> "print this help message and exit."
+     putStr $ pad help
+     putStrLn "print this help message and exit."
   where printLine :: Option -> IO ()
         printLine x =
           do putStr $ pad (flag x)
