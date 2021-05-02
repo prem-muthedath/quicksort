@@ -1,4 +1,4 @@
--- sample quickcheck test results. 28 APR 2021.
+-- sample quickcheck test results.
 -- author: Prem Muthedath.
 
 --- Classic ---
