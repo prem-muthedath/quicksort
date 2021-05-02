@@ -11,7 +11,6 @@ module Terminal (option, Option(..), list) where
 import System.Environment (getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import Data.List (intercalate)
-import qualified Data.Map as M
 
 -- | cabal commandline usage information (for display to user).
 -- for passing commandline option to a program run using `cabal v2-run`, see /u/ 
@@ -35,50 +34,29 @@ usage = intercalate "\n" (header : body)
 
 -- | commandline flags. includes `help` flag.
 clFlags :: [String]
-clFlags = M.elems flags <> [help]
-
--- | list type string representations associated with `Option` values.
-lists :: M.Map Option String
-lists = M.fromList $
-  map (\x -> case x of
-      Default     -> (x, "[Int]")
-      Letter      -> (x, "[Char]")
-      MaybeInt    -> (x, "[Maybe Int]")
-      MaybeChar   -> (x, "[Maybe Char]")
-      EitherInt   -> (x, "[Either String Int]")
-      EitherChar  -> (x, "[Either String Char]")
-  ) options
+clFlags = map (\x -> flag x) options  <> [help]
 
 -- | list type string representation associated with an `Option`.
 list :: Option -> String
-list opt = get opt lists
+list Default     =  "[Int]"
+list Letter      =  "[Char]"
+list MaybeInt    =  "[Maybe Int]"
+list MaybeChar   =  "[Maybe Char]"
+list EitherInt   =  "[Either String Int]"
+list EitherChar  =  "[Either String Char]"
 
--- | returns value associated with an `Option`.
-get :: Option -> M.Map Option String -> String
-get key map_ =
-  case (M.lookup key map_) of
-       Just x  -> x
-       Nothing -> error $ "no such key: " <> show key
-
--- | commandline flags associated with `Option` values. `help` flag not in.
-flags :: M.Map Option String
-flags = M.fromList $
-  map (\x -> case x of
-      Default     -> (x, "--int")
-      Letter      -> (x, "--char")
-      MaybeInt    -> (x, "--maybe-int")
-      MaybeChar   -> (x, "--maybe-char")
-      EitherInt   -> (x, "--either-int")
-      EitherChar  -> (x, "--either-char")
-  ) options
+-- | commandline flag associated with an `Option`.
+flag :: Option -> String
+flag Default     =  "--int"
+flag Letter      =  "--char"
+flag MaybeInt    =  "--maybe-int"
+flag MaybeChar   =  "--maybe-char"
+flag EitherInt   =  "--either-int"
+flag EitherChar  =  "--either-char"
 
 -- | commandline `help` flag.
 help :: String
 help = "--help"
-
--- | commandline flag associated with an `Option`.
-flag :: Option -> String
-flag opt = get opt flags
 
 -- | all `Option` values.
 options :: [Option]
