@@ -81,9 +81,9 @@ option = do
   else case () of
         _ | opt == []     -> return Default
           | opt == [help] -> printCabalUsage >> exitSuccess
-          | otherwise     -> bad opt >> exitFailure
-  where bad :: [String] -> IO ()
-        bad y = do putStrLn $ "Unrecognized option: " <> intercalate " " y
-                   printCabalUsage
+          | otherwise     -> printBad opt >> exitFailure
+  where printBad :: [String] -> IO ()
+        printBad y = do putStrLn $ "Unrecognized option: " <> intercalate " " y
+                        printCabalUsage
 
 
