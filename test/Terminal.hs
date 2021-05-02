@@ -15,19 +15,20 @@ import Data.List (intercalate)
 flags :: [String]
 flags = map (\x -> flag x) options  <> [help]
 
--- | cabal commandline usage information (for display to user).
+-- | print cabal commandline usage information (for display to user).
 -- for passing commandline option to a program run using `cabal v2-run`, see /u/ 
 -- hvr @ https://github.com/haskell/cabal/issues/6074
-usage :: IO ()
-usage =
+printCabalUsage :: IO ()
+printCabalUsage =
   do putStr $ "Usage: cabal v2-run :quicksort-test -- "
      putStrLn $ "[" <> intercalate " | " flags <> "]"
-     mapM_ (\x -> putStrLn $ optionline x) options
+     mapM_ (\x -> printLine x) options
      putStrLn $ pad help <> "print this help message and exit."
-  where optionline :: Option -> String
-        optionline x = pad (flag x) <> "test with: " <> show x <> ending x
-        ending :: Option -> String
-        ending x = if x == Default then ". This is the default." else "."
+  where printLine :: Option -> IO ()
+        printLine x =
+          do putStr $ pad (flag x)
+             putStr $ "test with: " <> show x <> "."
+             putStrLn $ if x == Default then " This is the default." else ""
         pad :: String -> String
         pad flag' = replicate 3 ' ' <> flag' <> replicate (width - length flag') ' '
         width :: Int
@@ -78,10 +79,10 @@ option = do
   if length match == 1 then return $ head match
   else case () of
         _ | opt == []     -> return Default
-          | opt == [help] -> usage >> exitSuccess
+          | opt == [help] -> printCabalUsage >> exitSuccess
           | otherwise     -> bad opt >> exitFailure
   where bad :: [String] -> IO ()
         bad y = do putStrLn $ "Unrecognized option: " <> intercalate " " y
-                   usage
+                   printCabalUsage
 
 
