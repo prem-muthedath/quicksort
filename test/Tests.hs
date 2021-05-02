@@ -74,7 +74,7 @@ runQC :: (Ord a, Show a, Arbitrary a)
       -> IO ()
 runQC qsort opt f = do
   putStrLn $ "\n--- " ++ show qsort ++ " ---"
-  putStrLn $ "testing with: " <> list opt
+  putStrLn $ "testing with: " <> show opt
   mapM_ (\(testCase, prop) ->
        do putStrLn $ show testCase
           quickCheck prop

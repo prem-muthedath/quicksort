@@ -6,7 +6,7 @@
 -- NOTE: code modeled after example at haskell wiki @ 
 -- https://tinyurl.com/5d7pkh9k
 
-module Terminal (option, Option(..), list) where
+module Terminal (option, Option(..)) where
 
 import System.Environment (getArgs)
 import System.Exit (exitSuccess, exitFailure)
@@ -26,7 +26,7 @@ usage = intercalate "\n" (header : body)
         body :: [String]
         body = map (\x -> optionline x) options <> [helpline]
         optionline :: Option -> String
-        optionline x = pad (flag x) <> "test with: " <> list x <> ending x
+        optionline x = pad (flag x) <> "test with: " <> show x <> ending x
         ending :: Option -> String
         ending x = if x == Default then ". This is the default." else "."
         helpline :: String
@@ -35,15 +35,6 @@ usage = intercalate "\n" (header : body)
         pad flag' = replicate 3 ' ' <> flag' <> replicate (width - length flag') ' '
         width :: Int
         width = let offset = 5 in (maximum . map (\x -> length x) $ clFlags) + offset
-
--- | list type string representation associated with an `Option`.
-list :: Option -> String
-list Default     =  "[Int]"
-list Letter      =  "[Char]"
-list MaybeInt    =  "[Maybe Int]"
-list MaybeChar   =  "[Maybe Char]"
-list EitherInt   =  "[Either String Int]"
-list EitherChar  =  "[Either String Char]"
 
 -- | commandline `help` flag.
 help :: String
@@ -62,6 +53,15 @@ flag EitherChar  =  "--either-char"
 options :: [Option]
 options = [toEnum 0 :: Option ..]
 
+-- | `Show` instance of `Option`.
+instance Show Option where
+  show Default     =  "[Int]"
+  show Letter      =  "[Char]"
+  show MaybeInt    =  "[Maybe Int]"
+  show MaybeChar   =  "[Maybe Char]"
+  show EitherInt   =  "[Either String Int]"
+  show EitherChar  =  "[Either String Char]"
+
 -- | specifies list data types as options for quickcheck testing.
 data Option
   = Default       -- [Int]
@@ -70,7 +70,7 @@ data Option
   | MaybeChar     -- [Maybe Char]
   | EitherInt     -- [Either String Int]
   | EitherChar    -- [Either String Char]
-  deriving (Eq, Show, Ord, Enum)
+  deriving (Eq, Enum)
 
 -- | returns user-specified commandline option (i.e., the input list data type) 
 -- for quickcheck tests. if none specified, returns `Default`.
