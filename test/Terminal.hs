@@ -23,14 +23,14 @@ printCabalUsage =
   do putStr $ "Usage: cabal v2-run :quicksort-test -- "
      putStrLn $ "[" <> intercalate " | " flags <> "]"
      mapM_ (\x ->
-        do mapM_ (\y -> putStr y) $ pad (flag x)
-           mapM_ (\y -> putStr y) ["test with: ", show x, "."]
+        do putStr $ pad (flag x)
+           putStr $ "test with: " <> show x <> "."
            putStrLn $ if x == Default then " This is the default." else ""
         ) options
-     mapM_ (\x -> putStr x) $ pad help
+     putStr $ pad help
      putStrLn "print this help message and exit."
-  where pad :: String -> [String]
-        pad x = [replicate 3 ' ', x, replicate (width - length x) ' ']
+  where pad :: String -> String
+        pad x = replicate 3 ' ' <> x <> replicate (width - length x) ' '
         width :: Int
         width = let offset = 5 in (maximum . map (\x -> length x) $ flags) + offset
 
