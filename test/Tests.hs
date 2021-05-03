@@ -13,6 +13,8 @@ import Types (Qsort, Implementation(..))
 import Quicksort (qsortImplementations)
 import Terminal
 
+-- QuickCheck reference (hackage): https://tinyurl.com/4hhpyn7b
+
 -- | `TestCase` -- specifies test cases for quickcheck testing.
 -- each value refers to a specific quickcheck property; that is,
 -- a quickcheck property is a function to test a specific test case.
@@ -60,13 +62,13 @@ qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> ([a] -> Property)
         qcProperty testCase = case testCase of
            Ordering   -> \xs -> classifys xs $ ordered (f xs)
-           Length     -> \xs -> classifys xs $ length (f xs) == length xs
-           Idempotent -> \xs -> classifys xs $ f xs == f (f xs)
-           Model      -> \xs -> classifys xs $ f xs == sort xs
+           Length     -> \xs -> classifys xs $ length (f xs) === length xs
+           Idempotent -> \xs -> classifys xs $ f xs === f (f xs)
+           Model      -> \xs -> classifys xs $ f xs === sort xs
            Min        -> \_ -> forAll (listOf1 arbitrary) $
-                         \xs -> classifys xs $ head (f xs) == minimum xs
+                         \xs -> classifys xs $ head (f xs) === minimum xs
            Max        -> \_ -> forAll (listOf1 arbitrary) $
-                         \xs -> classifys xs $ last (f xs) == maximum xs
+                         \xs -> classifys xs $ last (f xs) === maximum xs
 
 -- | run quickcheck on a specific haskell quicksort implementation.
 runQC :: (Ord a, Show a, Arbitrary a)

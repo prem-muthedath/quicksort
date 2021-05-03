@@ -82,9 +82,9 @@ option = do
   let match :: [Option] = filter (\x -> opt == [flag x]) options
   if length match == 1 then return $ head match
   else case () of
-        _ | opt == []     -> return Default
-          | opt == [help] -> printCabalUsage >> exitSuccess
-          | otherwise     -> printBad opt >> exitFailure
+          _ | opt == []     -> return Default
+            | opt == [help] -> printCabalUsage >> exitSuccess
+            | otherwise     -> printBad opt >> exitFailure
   where printBad :: [String] -> IO ()
         printBad y = do putStrLn $ "Unrecognized option: " <> intercalate " " y
                         printCabalUsage

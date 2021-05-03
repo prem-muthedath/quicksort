@@ -12,6 +12,8 @@ import Criterion.Measurement.Types (Benchmark)
 import Types (Qsort, Name, Implementation(..))
 import Quicksort (qsortImplementations, qsortSplits)
 
+-- criterion reference (hackage): https://tinyurl.com/y6jtau3k
+
 -- | `List` -- specifies samples for quicksort benchmarking.
 -- example: `Random` => list with items in random order.
 data List = Simple | Random | Descending | Ascending | BigDescending deriving (Eq, Show)
