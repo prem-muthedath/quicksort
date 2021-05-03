@@ -61,7 +61,7 @@ qcTest :: forall a. (Ord a, Show a, Arbitrary a)
 qcTest f = map (\tc -> (tc, qcProperty tc)) testCases
   where qcProperty :: TestCase -> ([a] -> Property)
         qcProperty testCase = case testCase of
-           Ordering   -> \xs -> classifys xs $ ordered (f xs)
+           Ordering   -> \xs -> classifys xs $ ordered (f xs) === True
            Length     -> \xs -> classifys xs $ length (f xs) === length xs
            Idempotent -> \xs -> classifys xs $ f xs === f (f xs)
            Model      -> \xs -> classifys xs $ f xs === sort xs
