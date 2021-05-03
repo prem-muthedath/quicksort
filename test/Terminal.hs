@@ -11,6 +11,10 @@ import System.Environment (getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import Data.List (intercalate)
 
+-- max flag length.
+maxFlagLength :: Int
+maxFlagLength = maximum . map (\x -> length x) $ flags
+
 -- | commandline flags. includes `help` flag.
 flags :: [String]
 flags = map (\x -> flag x) options  <> [help]
@@ -32,7 +36,7 @@ printCabalUsage =
   where pad :: String -> String
         pad x = replicate 3 ' ' <> x <> replicate (width - length x) ' '
         width :: Int
-        width = let offset = 5 in (maximum . map (\x -> length x) $ flags) + offset
+        width = let offset = 5 in maxFlagLength + offset
 
 -- | commandline `help` flag.
 help :: String
